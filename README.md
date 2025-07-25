@@ -6,7 +6,6 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/harshguptakiet/cura-genie?style=for-the-badge&color=gold)](https://github.com/harshguptakiet/cura-genie/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/harshguptakiet/cura-genie?style=for-the-badge&color=blue)](https://github.com/harshguptakiet/cura-genie/network)
-[![License](https://img.shields.io/github/license/harshguptakiet/cura-genie?style=for-the-badge)](LICENSE)
 [![GSSOC](https://img.shields.io/badge/GSSOC-2025-orange?style=for-the-badge)](https://gssoc.girlscript.tech/)
 
 **✨ Revolutionizing Healthcare with AI-Powered Solutions ✨**
@@ -110,13 +109,7 @@ To democratize healthcare by making quality medical assistance accessible to eve
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js (v16+)
-- Python (v3.8+)
-- MongoDB
-- Git
-
-### Installation
+### Getting Started
 
 ```bash
 # Clone the repository
@@ -124,30 +117,16 @@ git clone https://github.com/harshguptakiet/cura-genie.git
 
 # Navigate to project directory
 cd cura-genie
-
-# Install dependencies
-npm install
-
-# Set up Python environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install Python packages
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Start the development server
-npm run dev
 ```
 
-### 🎯 First Time Setup
-1. Create your MongoDB database
-2. Configure your API keys
-3. Run database migrations
-4. Start contributing! 🎉
+### 🚧 Development Setup Coming Soon!
+*Detailed installation and setup instructions will be available once the codebase is developed.*
+
+**For now, you can:**
+- ⭐ Star the repository
+- 👀 Watch for updates
+- � Fork to contribute
+- 📋 Check out issues for contribution opportunities
 
 ---
 
@@ -219,14 +198,15 @@ Look for issues labeled with:
 
 <div align="center">
 
-### 🖥️ Dashboard
-![Dashboard Preview](https://via.placeholder.com/800x400/4A90E2/FFFFFF?text=Cura+Genie+Dashboard)
+### � Coming Soon! 🚧
+*Screenshots and demo will be available once the application is developed*
 
-### 📱 Mobile App
-![Mobile Preview](https://via.placeholder.com/300x600/50E3C2/FFFFFF?text=Mobile+App)
+**We're working hard to bring you:**
+- 🖥️ **Dashboard Preview**
+- 📱 **Mobile App Interface** 
+- 🤖 **AI Assistant Demo**
 
-### 🤖 AI Assistant
-![AI Assistant](https://via.placeholder.com/600x400/F5A623/FFFFFF?text=AI+Health+Assistant)
+*Stay tuned for updates!*
 
 </div>
 
@@ -259,15 +239,6 @@ Look for issues labeled with:
 
 ---
 
-## 🎖️ Achievements & Recognition
-
-- 🥇 **Best Healthcare Innovation** - TechFest 2024
-- 🏆 **Open Source Excellence** - DevCon 2024
-- 🌟 **Top GSSOC Project** - 2024
-- 📈 **Fastest Growing Health-Tech Repo** - GitHub 2024
-
----
-
 ## 🗺️ Roadmap
 
 ### Q1 2025
@@ -294,15 +265,15 @@ Look for issues labeled with:
 
 <div align="center">
 
-[![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/curagenie)
-[![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)](https://curagenie.slack.com)
-[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/curagenie)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/company/curagenie)
+[![Discord](https://img.shields.io/badge/Discord-Coming%20Soon-7289DA?style=for-the-badge&logo=discord&logoColor=white)](#)
+[![Slack](https://img.shields.io/badge/Slack-Coming%20Soon-4A154B?style=for-the-badge&logo=slack&logoColor=white)](#)
+[![Twitter](https://img.shields.io/badge/Twitter-Coming%20Soon-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](#)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/harsh-gupta-kiet/)
 
 </div>
 
 ### 💬 Get Help
-- 📧 Email: support@curagenie.com
+- 📧 Email: technophileharshit@gmail.com
 - 💬 Discord: Join our community
 - 📱 Twitter: @CuraGenie
 - 📋 GitHub Issues: Report bugs & request features
@@ -311,7 +282,7 @@ Look for issues labeled with:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project license is **TBD** (To Be Determined).
 
 ---
 
