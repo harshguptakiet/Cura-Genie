@@ -102,10 +102,7 @@ To democratize healthcare by making quality medical assistance accessible to eve
 - **GitHub badges** for your profile
 - **Certificates** of participation
 - **Swag items** for top contributors
-- **Letter of recommendation** for outstanding work
-- **Direct job referrals** to our partner companies
 
----
 
 ## 🚀 Quick Start
 
