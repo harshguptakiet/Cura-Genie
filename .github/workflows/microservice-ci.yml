@@ -1,0 +1,55 @@
+name: Microservice CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test-diabetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          cd curagenie/ml_microservices/diabetes_model
+          pip install -r requirements.txt || pip install flask pandas joblib xgboost
+      - name: Run API tests
+        run: |
+          cd curagenie/ml_microservices/diabetes_model
+          pytest tests
+  test-alzheimers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          cd curagenie/ml_microservices/alzheimers_model
+          pip install -r requirements.txt || pip install flask pandas joblib xgboost
+      - name: Run API tests
+        run: |
+          cd curagenie/ml_microservices/alzheimers_model
+          pytest tests
+  test-cancer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          cd curagenie/ml_microservices/tumor_model
+          pip install -r requirements.txt || pip install flask pandas joblib xgboost
+      - name: Run API tests
+        run: |
+          cd curagenie/ml_microservices/tumor_model
+          pytest tests

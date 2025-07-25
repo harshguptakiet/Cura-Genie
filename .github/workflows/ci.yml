@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: curagenie
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install backend dependencies
+        run: |
+          cd curagenie/backend
+          pip install -r requirements.txt
+      - name: Run backend tests
+        run: |
+          cd curagenie/backend
+          pytest
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install frontend dependencies
+        run: |
+          cd curagenie/frontend
+          npm install
+      - name: Run frontend build
+        run: |
+          cd curagenie/frontend
+          npm run build

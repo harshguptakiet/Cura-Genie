@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+.next/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temp
+*.log
+tmp/
+
+# Build artifacts
+dist/
+build/
+
+# Secrets
+firebase-credentials.json
+
+# Docker
+*.pid
+
+# VS Code
+.vscode/

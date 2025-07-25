@@ -1,0 +1,13 @@
+firebase-admin
+vcfpy
+biopython
+Flask
+Flask-RESTful
+psycopg2-binary
+python-dotenv
+boto3
+Flask-Cors
+SQLAlchemy
+gunicorn
+flask-limiter
+prometheus_flask_exporter
