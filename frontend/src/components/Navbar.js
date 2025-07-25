@@ -1,11 +1,18 @@
 import { Box, Button, Flex, Spacer, Link } from '@chakra-ui/react';
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
+import { auth } from '../utils/firebase';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const router = useRouter();
-  const user = firebase.auth().currentUser;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <Flex as="nav" p={4} bg="teal.500" color="white" align="center">

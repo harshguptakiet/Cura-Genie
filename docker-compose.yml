@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   backend:
-    build: ./curagenie/backend
+    build: ./backend
     ports:
       - "5000:5000"
     environment:
@@ -18,7 +18,7 @@ services:
     ports:
       - "5432:5432"
   frontend:
-    build: ./curagenie/frontend
+    build: ./frontend
     ports:
       - "3000:3000"
     environment:
