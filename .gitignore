@@ -1,0 +1,55 @@
+# Node.js dependencies and build
+node_modules/
+.next/
+
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+# Environment and secrets
+.env
+.env.local
+.env.example
+.env.local.example
+firebase_creds.json
+# Node modules
+node_modules/
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# Build output
+
+# OS and editor files
+# Environment files
+.DS_Store
+Thumbs.db
+# OS files
+.vscode/
+
+# IDE files
+# Logs and temp
+*.log
+# Misc
+tmp/
+
+# Build artifacts
+dist/
+build/
+
+# Docker
+*.pid
+
+# Do NOT ignore source code, configs, or documentation
+!curagenie/
+!frontend/
+!ml_microservices/
+!shared/
+!docker-compose.yml
+!prometheus.yml
+!README.md
