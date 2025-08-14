@@ -1,6 +1,6 @@
 """
-Comprehensive Report Generator for CuraGenie
-Generates user-friendly reports with risk scores and key variants
+Report Generator for CuraGenie
+Generates comprehensive genomic analysis reports
 """
 
 import logging
@@ -18,7 +18,6 @@ class ReportGenerator:
         self.disease_templates = {
             "diabetes": {
                 "description": "Type 2 Diabetes Risk Assessment",
-                "key_genes": ["TCF7L2", "PPARG", "KCNJ11", "CDKAL1"],
                 "recommendations": [
                     "Monitor blood glucose levels regularly",
                     "Maintain healthy diet and exercise routine",
@@ -27,7 +26,6 @@ class ReportGenerator:
             },
             "alzheimer": {
                 "description": "Alzheimer's Disease Risk Assessment", 
-                "key_genes": ["APOE", "APP", "PSEN1", "PSEN2", "TREM2"],
                 "recommendations": [
                     "Regular cognitive assessments",
                     "Maintain brain health through mental stimulation",
@@ -36,7 +34,6 @@ class ReportGenerator:
             },
             "brain_tumor": {
                 "description": "Brain Tumor Risk Assessment",
-                "key_genes": ["TP53", "NF1", "NF2", "VHL", "PTCH1"],
                 "recommendations": [
                     "Regular neurological examinations",
                     "Immediate medical attention for new symptoms",
@@ -45,7 +42,7 @@ class ReportGenerator:
             }
         }
     
-    def generate_comprehensive_report(
+    def generate_report(
         self,
         user_id: str,
         genomic_data: Dict[str, Any],
@@ -56,7 +53,7 @@ class ReportGenerator:
         """Generate comprehensive genomic analysis report"""
         
         try:
-            logger.info(f"Generating comprehensive report for user {user_id}")
+            logger.info(f"Generating report for user {user_id}")
             
             # Generate disease assessments
             disease_assessments = []
@@ -89,7 +86,7 @@ class ReportGenerator:
                 'disclaimer': "This analysis is for informational purposes only. Consult healthcare professionals for medical advice."
             }
             
-            logger.info(f"✅ Comprehensive report generated successfully")
+            logger.info(f"✅ Report generated successfully")
             return report
             
         except Exception as e:
@@ -107,10 +104,10 @@ class ReportGenerator:
         template = self.disease_templates.get(disease_type, {})
         
         # Extract relevant variants
-        key_variants = self._extract_relevant_variants(disease_type, variant_annotations)
+        key_variants = self._extract_relevant_variants(variant_annotations)
         
         # Generate evidence and recommendations
-        supporting_evidence = self._generate_evidence(disease_type, key_variants, ml_prediction)
+        supporting_evidence = self._generate_evidence(key_variants, ml_prediction)
         recommendations = self._generate_recommendations(disease_type, ml_prediction, key_variants)
         
         return {
@@ -127,17 +124,13 @@ class ReportGenerator:
             }
         }
     
-    def _extract_relevant_variants(
-        self,
-        disease_type: str,
-        variant_annotations: List[Dict]
-    ) -> List[Dict]:
-        """Extract variants relevant to specific disease"""
+    def _extract_relevant_variants(self, variant_annotations: List[Dict]) -> List[Dict]:
+        """Extract relevant variants"""
         
         relevant_variants = []
         
         for variant in variant_annotations:
-            if self._is_variant_relevant(variant, disease_type):
+            if self._is_variant_relevant(variant):
                 relevant_variants.append({
                     'chrom': variant.get('chrom'),
                     'pos': variant.get('pos'),
@@ -153,8 +146,8 @@ class ReportGenerator:
         relevant_variants.sort(key=lambda x: x['relevance_score'], reverse=True)
         return relevant_variants[:10]
     
-    def _is_variant_relevant(self, variant: Dict[str, Any], disease_type: str) -> bool:
-        """Check if variant is relevant to disease"""
+    def _is_variant_relevant(self, variant: Dict[str, Any]) -> bool:
+        """Check if variant is relevant"""
         
         # Check functional impact
         if variant.get('functional_impact') in ['HIGH', 'MODERATE']:
@@ -199,12 +192,7 @@ class ReportGenerator:
         
         return min(score, 1.0)
     
-    def _generate_evidence(
-        self,
-        disease_type: str,
-        key_variants: List[Dict],
-        ml_prediction: Dict[str, Any]
-    ) -> List[str]:
+    def _generate_evidence(self, key_variants: List[Dict], ml_prediction: Dict[str, Any]) -> List[str]:
         """Generate supporting evidence"""
         
         evidence = []
@@ -283,30 +271,6 @@ class ReportGenerator:
                                     if 'pathogenic' in str(v.get('clinvar_significance', '')).lower())
         }
     
-    def export_report_json(self, report: Dict[str, Any]) -> str:
+    def export_json(self, report: Dict[str, Any]) -> str:
         """Export report to JSON format"""
         return json.dumps(report, indent=2, default=str)
-    
-    def export_report_summary(self, report: Dict[str, Any]) -> Dict[str, Any]:
-        """Export simplified report summary"""
-        
-        return {
-            'report_id': report['report_id'],
-            'timestamp': report['timestamp'],
-            'processing_time': report['processing_time_seconds'],
-            'total_variants': report['total_variants'],
-            'disease_risks': [
-                {
-                    'disease': assessment['disease_name'],
-                    'risk_level': assessment['risk_level'],
-                    'risk_score': assessment['risk_score'],
-                    'confidence': assessment['confidence']
-                }
-                for assessment in report['disease_assessments']
-            ],
-            'key_findings': {
-                'high_impact_variants': report['variant_summary'].get('pathogenic_variants', 0),
-                'rare_variants': report['variant_summary'].get('rare_variants', 0),
-                'annotation_rate': report['annotated_variants'] / report['total_variants'] if report['total_variants'] > 0 else 0
-            }
-        }
