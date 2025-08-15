@@ -11,7 +11,7 @@ from db.database import get_db
 from db.models import GenomicData
 from schemas.schemas import GenomicDataResponse, UploadResponse
 from core.config import settings
-from worker.tasks import process_genomic_file
+from cg_worker.tasks import process_genomic_file
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/genomic-data", tags=["genomic-data"])

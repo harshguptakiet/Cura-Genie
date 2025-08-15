@@ -1,0 +1,45 @@
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+*.db
+.env
+.env.*
+.venv/
+venv/
+/build/
+/dist/
+.cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+uploads/
+/data/
+
+# Git
+.git/
+.gitignore
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python build artifacts
+*.egg-info/
+.eggs/
+
+# Coverage
+.coverage*
+.tox/
+
+# Docker
+Dockerfile*
+
+# Node-related (if any generated artifacts in backend)
+node_modules/

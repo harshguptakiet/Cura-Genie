@@ -23,24 +23,8 @@ from pathlib import Path
 # Import our real genomic processing utilities
 from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator, GenomicQualityController
 
-# Import error handling and logging components
-from core.logging_config import setup_logging
-from core.middleware import setup_middleware
-from core.exception_handlers import setup_exception_handlers
-from core.errors import (
-    CuraGenieError, ValidationError, AuthenticationError, 
-    ProcessingError, DatabaseError, ExternalServiceError,
-    log_operation_result, get_request_context
-)
-
-# Import unified authentication system
-from api.auth import router as auth_router
-
-# Import configuration manager
-from core.config import config_manager
-
-# Setup logging first
-setup_logging()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
@@ -52,54 +36,26 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Setup error handling and logging middleware
-setup_middleware(app)
-setup_exception_handlers(app)
-
-# Add CORS middleware with environment-specific configuration
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config_manager.get_cors_origins(),
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include authentication router
-app.include_router(auth_router, prefix="/api")
-
-# Database setup with environment-specific configuration
-DATABASE_PATH = config_manager.get("DATABASE_URL", "curagenie_real.db")
-UPLOADS_DIR = Path("uploads")
-UPLOADS_DIR.mkdir(exist_ok=True)
-
-# Startup event to test database connection
-@app.on_event("startup")
-async def startup_event():
-    """Test database connection on startup"""
-    try:
-        logger.info("🔍 Testing database connection...")
-        
-        # Import database functions
-        from db.database import test_database_connection, get_database_url
-        
-        # Test the connection
-        if test_database_connection():
-            database_url = get_database_url()
-            if database_url.startswith('postgresql://'):
-                logger.info("✅ Connected to Neon PostgreSQL database successfully!")
-            else:
-                logger.info("✅ Connected to SQLite database successfully!")
-        else:
-            logger.error("❌ Database connection failed!")
-            
-    except Exception as e:
-        logger.error(f"❌ Error during startup: {e}")
-        logger.warning("⚠️  Application will continue but database features may not work")
+# Database setup (configurable via environment variables)
+DATABASE_PATH = os.getenv("DATABASE_PATH", "/app/data/curagenie_real.db")
+UPLOADS_DIR = Path(os.getenv("UPLOADS_DIR", "uploads"))
+# Ensure parent directory for DB exists if a path is provided
+_db_parent = Path(DATABASE_PATH).parent
+if str(_db_parent) and str(_db_parent) != ".":
+    _db_parent.mkdir(parents=True, exist_ok=True)
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 def init_database():
     """Initialize SQLite database with all required tables"""
-    try:
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
@@ -187,8 +143,6 @@ def init_database():
     conn.commit()
     conn.close()
     logger.info("✅ Database initialized with real schema")
-    except Exception as e:
-        logger.error(f"❌ Error initializing database: {e}")
 
 # Initialize database on startup
 init_database()
@@ -217,16 +171,10 @@ class Token(BaseModel):
 
 # Helper functions
 def get_db_connection():
-    try:
-        conn = sqlite3.connect(DATABASE_PATH)
-        return conn
-    except sqlite3.Error as e:
-        logger.error(f"❌ Error getting database connection: {e}")
-        raise DatabaseError(f"Failed to connect to database: {e}")
+    return sqlite3.connect(DATABASE_PATH)
 
 def create_timeline_event(user_id: int, event_type: str, title: str, description: str, metadata: Dict = None):
     """Create a real timeline event"""
-    try:
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -236,13 +184,14 @@ def create_timeline_event(user_id: int, event_type: str, title: str, description
     conn.commit()
     conn.close()
     logger.info(f"📅 Timeline event created: {title}")
-    except Exception as e:
-        logger.error(f"❌ Error creating timeline event: {e}")
-        raise ProcessingError(f"Failed to create timeline event: {e}")
 
-# REMOVED: Plain text authentication function
-# This has been replaced by the secure authentication system in core/auth_service.py
-# Use the unified authentication endpoints at /auth/* instead
+def authenticate_user(email: str, password: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
+    user = cursor.fetchone()
+    conn.close()
+    return user
 
 def process_genomic_file_background(file_path: str, file_id: int, user_id: int, file_type: str):
     """Background task to process genomic files"""
@@ -939,7 +888,6 @@ async def real_chatbot(message: dict):
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
-    try:
     user = authenticate_user(credentials.email, credentials.password)
     if not user:
         # Create demo user if doesn't exist
@@ -959,40 +907,16 @@ async def login(credentials: UserLogin):
         user_id=user_id,
         role="patient"
     )
-    except AuthenticationError as e:
-        raise e
-    except Exception as e:
-        logger.error(f"❌ Login error: {e}")
-        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @app.get("/api/auth/me")
 async def get_current_user():
-    try:
-        user_id = get_request_context().user_id
-        if user_id is None:
-            raise AuthenticationError("User not authenticated")
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, email, username, role, is_active FROM users WHERE id = ?", (user_id,))
-        user = cursor.fetchone()
-        conn.close()
-
-        if not user:
-            raise AuthenticationError("User not found")
-
     return {
-            "id": user[0],
-            "email": user[1],
-            "username": user[2],
-            "role": user[3],
-            "is_active": user[4]
-        }
-    except AuthenticationError as e:
-        raise e
-    except Exception as e:
-        logger.error(f"❌ Error getting current user: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get current user: {str(e)}")
+        "id": 1,
+        "email": "demo@curagenie.com",
+        "username": "demo_user",
+        "role": "patient",
+        "is_active": True
+    }
 
 # Other essential endpoints
 @app.get("/api/features")

@@ -6,7 +6,6 @@ celery_app = Celery(
     "curagenie",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["worker.tasks"]
 )
 
 # Celery configuration
@@ -18,9 +17,9 @@ celery_app.conf.update(
     enable_utc=True,
     task_track_started=True,
     task_routes={
-        "worker.tasks.process_genomic_file": {"queue": "genomic_processing"},
-        "worker.tasks.calculate_prs_score": {"queue": "prs_calculation"},
-        "worker.tasks.run_ml_inference": {"queue": "ml_inference"},
+        "cg_worker.tasks.process_genomic_file": {"queue": "genomic_processing"},
+        "cg_worker.tasks.calculate_prs_score": {"queue": "prs_calculation"},
+        "cg_worker.tasks.run_ml_inference": {"queue": "ml_inference"},
     },
     worker_prefetch_multiplier=1,
     task_acks_late=True,

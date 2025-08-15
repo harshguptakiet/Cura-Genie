@@ -1,438 +1,263 @@
-"""
-Unified Authentication API Endpoints
-Replaces inconsistent authentication systems with secure, standardized endpoints
-"""
-
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import datetime
-import logging
+from datetime import timedelta
 
-from core.auth_service import auth_service, get_current_user, require_role
-from core.errors import AuthenticationError, ValidationError, DatabaseError
+from core.auth import (
+    authenticate_user, create_access_token, get_password_hash,
+    get_user_by_email, get_user_by_username, get_current_user,
+    ACCESS_TOKEN_EXPIRE_MINUTES
+)
 from db.database import get_db
-from db.auth_models import User, UserRole
+from db.auth_models import User, PatientProfile
 from schemas.auth_schemas import (
-    UserCreate, UserLogin, TokenResponse, TokenRefresh, AuthResponse,
-    ChangePassword, PasswordResetRequest, PasswordResetConfirm,
-    PasswordChangeResponse, PasswordResetResponse, User as UserSchema
+    UserCreate, UserLogin, Token, User as UserSchema, SocialAuth,
+    ForgotPassword, ResetPassword
 )
 
-logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
-
-# Rate limiting for authentication endpoints
-from core.rate_limiter import rate_limit
-
-@router.post("/register", response_model=AuthResponse)
-@rate_limit(max_requests=5, window_seconds=300)  # 5 requests per 5 minutes
-async def register_user(
-    user_data: UserCreate,
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Register a new user with secure password hashing
-    """
-    try:
-        # Create user with hashed password
-        user = await auth_service.create_user(db, user_data)
-        
-        # Create authentication tokens
-        tokens = auth_service.create_tokens(user)
-        
-        # Create patient profile if first_name and last_name provided
-        if user_data.first_name and user_data.last_name:
-            from db.auth_models import PatientProfile
-            profile = PatientProfile(
-                user_id=user.id,
-                first_name=user_data.first_name,
-                last_name=user_data.last_name,
-                phone=user_data.phone
-            )
-            db.add(profile)
-            db.commit()
-        
-        logger.info(f"User registered successfully: {user.email}")
-        
-        return AuthResponse(
-            user=UserSchema.from_orm(user),
-            tokens=tokens,
-            message="User registered successfully"
-        )
-        
-    except ValidationError as e:
-        logger.warning(f"Registration validation failed: {e}")
+@router.post("/register", response_model=UserSchema)
+def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    """Register a new user"""
+    
+    # Check if email already exists
+    if get_user_by_email(db, user_data.email):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
         )
-    except DatabaseError as e:
-        logger.error(f"Database error during registration: {e}")
+    
+    # Check if username already exists
+    if get_user_by_username(db, user_data.username):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed. Please try again."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already taken"
         )
-    except Exception as e:
-        logger.error(f"Unexpected error during registration: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed. Please try again."
+    
+    # Create new user
+    hashed_password = get_password_hash(user_data.password)
+    db_user = User(
+        email=user_data.email,
+        username=user_data.username,
+        hashed_password=hashed_password,
+        role=user_data.role
+    )
+    
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    # Create patient profile if role is patient
+    if user_data.role == "patient":
+        patient_profile = PatientProfile(
+            user_id=db_user.id,
+            first_name=user_data.first_name or "",
+            last_name=user_data.last_name or "",
+            phone=user_data.phone
         )
+        db.add(patient_profile)
+        db.commit()
+    
+    return db_user
 
-@router.post("/login", response_model=AuthResponse)
-@rate_limit(max_requests=10, window_seconds=300)  # 10 requests per 5 minutes
-async def login_user(
-    user_credentials: UserLogin,
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Authenticate user and return JWT tokens
-    """
-    try:
-        # Authenticate user
-        user = await auth_service.authenticate_user(
-            db, 
-            user_credentials.email, 
-            user_credentials.password
-        )
-        
-        if not user:
-            logger.warning(f"Failed login attempt for email: {user_credentials.email}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password"
-            )
-        
-        # Create authentication tokens
-        tokens = auth_service.create_tokens(user)
-        
-        logger.info(f"User logged in successfully: {user.email}")
-        
-        return AuthResponse(
-            user=UserSchema.from_orm(user),
-            tokens=tokens,
-            message="Login successful"
-        )
-        
-    except AuthenticationError as e:
-        logger.warning(f"Authentication failed: {e}")
+@router.post("/login", response_model=Token)
+def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+    """Login user and return JWT token"""
+    
+    user = authenticate_user(db, user_credentials.email, user_credentials.password)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    except Exception as e:
-        logger.error(f"Unexpected error during login: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed. Please try again."
-        )
-
-@router.post("/refresh", response_model=TokenResponse)
-async def refresh_access_token(
-    token_data: TokenRefresh,
-    request: Request = None
-):
-    """
-    Refresh access token using refresh token
-    """
-    try:
-        new_access_token = await auth_service.refresh_access_token(token_data.refresh_token)
-        
-        # Decode the new token to get user info
-        payload = auth_service.verify_token(new_access_token, "access")
-        
-        # Create new token response
-        tokens = TokenResponse(
-            access_token=new_access_token,
-            refresh_token=token_data.refresh_token,  # Keep existing refresh token
-            token_type="bearer",
-            expires_in=15 * 60,  # 15 minutes
-            user_id=payload["user_id"],
-            role=payload["role"],
-            email=payload["email"]
-        )
-        
-        logger.info(f"Access token refreshed for user: {payload['email']}")
-        return tokens
-        
-    except AuthenticationError as e:
-        logger.warning(f"Token refresh failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error during token refresh: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token refresh failed. Please try again."
-        )
-
-@router.post("/logout")
-async def logout_user(
-    current_user: User = Depends(get_current_user),
-    request: Request = None
-):
-    """
-    Logout user (invalidate tokens)
-    Note: In a production system, you would blacklist the tokens
-    """
-    try:
-        # TODO: Implement token blacklisting
-        logger.info(f"User logged out: {current_user.email}")
-        
-        return {
-            "message": "Logout successful",
-            "timestamp": datetime.utcnow()
-        }
-        
-    except Exception as e:
-        logger.error(f"Error during logout: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Logout failed"
-        )
-
-@router.post("/change-password", response_model=PasswordChangeResponse)
-async def change_password(
-    password_data: ChangePassword,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Change user password
-    """
-    try:
-        success = await auth_service.change_password(
-            db,
-            current_user.id,
-            password_data.current_password,
-            password_data.new_password
-        )
-        
-        if success:
-            logger.info(f"Password changed successfully for user: {current_user.email}")
-            return PasswordChangeResponse(
-                message="Password changed successfully",
-                timestamp=datetime.utcnow()
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to change password"
-            )
-        
-    except ValidationError as e:
-        logger.warning(f"Password change validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
-    except AuthenticationError as e:
-        logger.warning(f"Password change authentication failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error during password change: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Password change failed. Please try again."
-        )
-
-@router.post("/forgot-password", response_model=PasswordResetResponse)
-@rate_limit(max_requests=3, window_seconds=3600)  # 3 requests per hour
-async def forgot_password(
-    password_reset: PasswordResetRequest,
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Request password reset
-    """
-    try:
-        reset_token = await auth_service.request_password_reset(db, password_reset.email)
-        
-        # TODO: Send email with reset token
-        logger.info(f"Password reset requested for email: {password_reset.email}")
-        
-        return PasswordResetResponse(
-            message="If an account with that email exists, a password reset link has been sent.",
-            timestamp=datetime.utcnow()
-        )
-        
-    except Exception as e:
-        logger.error(f"Error during password reset request: {e}")
-        # Don't reveal if email exists or not
-        return PasswordResetResponse(
-            message="If an account with that email exists, a password reset link has been sent.",
-            timestamp=datetime.utcnow()
-        )
-
-@router.post("/reset-password")
-async def reset_password(
-    reset_data: PasswordResetConfirm,
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Reset password using reset token
-    """
-    try:
-        success = await auth_service.reset_password_with_token(
-            db,
-            reset_data.email,
-            reset_data.reset_token,
-            reset_data.new_password
-        )
-        
-        if success:
-            logger.info(f"Password reset successfully for email: {reset_data.email}")
-            return {
-                "message": "Password reset successfully",
-                "timestamp": datetime.utcnow()
-            }
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to reset password"
-            )
-        
-    except ValidationError as e:
-        logger.warning(f"Password reset validation failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error during password reset: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Password reset failed. Please try again."
-        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=access_token_expires
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user_id=user.id,
+        role=user.role.value
+    )
 
 @router.get("/me", response_model=UserSchema)
-async def get_current_user_info(
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user
+
+@router.put("/change-password")
+def change_password(
+    current_password: str,
+    new_password: str,
     current_user: User = Depends(get_current_user),
-    request: Request = None
+    db: Session = Depends(get_db)
 ):
-    """
-    Get current user information
-    """
-    try:
-        return UserSchema.from_orm(current_user)
-        
-    except Exception as e:
-        logger.error(f"Error getting current user info: {e}")
+    """Change user password"""
+    
+    # Verify current password
+    if not authenticate_user(db, current_user.email, current_password):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get user information"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
         )
+    
+    # Update password
+    current_user.hashed_password = get_password_hash(new_password)
+    db.commit()
+    
+    return {"message": "Password updated successfully"}
 
-@router.post("/verify-email")
-async def verify_email(
-    token: str,
+@router.post("/logout")
+def logout():
+    """Logout user (client should remove token)"""
+    return {"message": "Successfully logged out"}
+
+@router.delete("/delete-account")
+def delete_account(
+    password: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    request: Request = None
+    db: Session = Depends(get_db)
 ):
-    """
-    Verify user email address
-    """
-    try:
-        # TODO: Implement email verification logic
-        current_user.is_verified = True
+    """Delete user account"""
+    
+    # Verify password before deletion
+    if not authenticate_user(db, current_user.email, password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is incorrect"
+        )
+    
+    # Deactivate user instead of deleting
+    current_user.is_active = False
+    db.commit()
+    
+    return {"message": "Account deactivated successfully"}
+
+@router.post("/social-auth", response_model=Token)
+def social_auth(auth_data: SocialAuth, db: Session = Depends(get_db)):
+    """Social authentication (Google, Facebook, etc.)"""
+    
+    # Check if user exists
+    user = get_user_by_email(db, auth_data.email)
+    
+    if not user:
+        # Create new user from social auth
+        username = auth_data.email.split('@')[0]  # Use email prefix as username
+        counter = 1
+        original_username = username
+        
+        # Ensure username is unique
+        while get_user_by_username(db, username):
+            username = f"{original_username}{counter}"
+            counter += 1
+        
+        user = User(
+            email=auth_data.email,
+            username=username,
+            hashed_password="",  # No password for social auth
+            role="patient",
+            is_verified=True  # Social accounts are pre-verified
+        )
+        
+        db.add(user)
         db.commit()
+        db.refresh(user)
         
-        logger.info(f"Email verified for user: {current_user.email}")
+        # Create patient profile
+        names = auth_data.name.split(' ', 1)
+        first_name = names[0] if names else ""
+        last_name = names[1] if len(names) > 1 else ""
         
-        return {
-            "message": "Email verified successfully",
-            "timestamp": datetime.utcnow()
-        }
-        
-    except Exception as e:
-        logger.error(f"Error during email verification: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Email verification failed"
+        patient_profile = PatientProfile(
+            user_id=user.id,
+            first_name=first_name,
+            last_name=last_name,
+            avatar_url=auth_data.avatar_url
         )
-
-# Admin-only endpoints
-@router.get("/users", response_model=list[UserSchema])
-async def get_all_users(
-    current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Get all users (admin only)
-    """
-    try:
-        users = db.query(User).all()
-        return [UserSchema.from_orm(user) for user in users]
-        
-    except Exception as e:
-        logger.error(f"Error getting all users: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get users"
-        )
-
-@router.put("/users/{user_id}/activate")
-async def activate_user(
-    user_id: int,
-    current_user: User = Depends(require_role(UserRole.ADMIN)),
-    db: Session = Depends(get_db),
-    request: Request = None
-):
-    """
-    Activate/deactivate user (admin only)
-    """
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        
-        user.is_active = not user.is_active
+        db.add(patient_profile)
         db.commit()
-        
-        status_text = "activated" if user.is_active else "deactivated"
-        logger.info(f"User {user.email} {status_text} by admin {current_user.email}")
-        
-        return {
-            "message": f"User {status_text} successfully",
-            "user_id": user_id,
-            "is_active": user.is_active,
-            "timestamp": datetime.utcnow()
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error activating/deactivating user: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update user status"
-        )
+    
+    # Generate access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=access_token_expires
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user_id=user.id,
+        role=user.role.value
+    )
 
-# Health check endpoint
-@router.get("/health")
-async def auth_health_check():
-    """
-    Authentication service health check
-    """
-    return {
-        "status": "healthy",
-        "service": "authentication",
-        "timestamp": datetime.utcnow()
-    }
+@router.post("/forgot-password")
+def forgot_password(request: ForgotPassword, db: Session = Depends(get_db)):
+    """Send password reset email"""
+    
+    user = get_user_by_email(db, request.email)
+    if not user:
+        # Don't reveal if email exists or not
+        return {"message": "If the email exists, a password reset link has been sent."}
+    
+    # In a real implementation, you would:
+    # 1. Generate a secure reset token
+    # 2. Store it with expiration in database
+    # 3. Send email with reset link
+    
+    # For now, just return success message
+    return {"message": "If the email exists, a password reset link has been sent."}
+
+@router.post("/reset-password")
+def reset_password(request: ResetPassword, db: Session = Depends(get_db)):
+    """Reset password using token"""
+    
+    # In a real implementation, you would:
+    # 1. Verify the reset token
+    # 2. Check if it's not expired
+    # 3. Get user associated with the token
+    # 4. Update their password
+    
+    # For now, just return error as tokens aren't implemented
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Password reset functionality not fully implemented yet"
+    )
+
+@router.post("/verify-email/{token}")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    """Verify user email with token"""
+    
+    # In a real implementation, you would:
+    # 1. Verify the email verification token
+    # 2. Mark user as verified
+    
+    return {"message": "Email verification functionality not implemented yet"}
+
+@router.post("/resend-verification")
+def resend_verification(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Resend email verification"""
+    
+    user = get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    if user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already verified"
+        )
+    
+    # In a real implementation, send verification email
+    return {"message": "Verification email sent"}

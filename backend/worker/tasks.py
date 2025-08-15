@@ -98,7 +98,7 @@ if os.getenv('SKIP_ML_LOADING') != 'true':
 else:
     logger.info("⚪ Skipping ML model loading (test environment)")
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="cg_worker.tasks.process_genomic_file")
 def process_genomic_file(self, genomic_data_id: int):
     """
     Background task to process uploaded genomic files
@@ -176,7 +176,7 @@ def process_genomic_file(self, genomic_data_id: int):
     finally:
         db.close()
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="cg_worker.tasks.calculate_prs_score")
 def calculate_prs_score(self, genomic_data_id: int, disease_type: str):
     """
     Background task to calculate Polygenic Risk Scores using advanced genomic analysis
@@ -254,7 +254,7 @@ def calculate_prs_score(self, genomic_data_id: int, disease_type: str):
     finally:
         db.close()
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="cg_worker.tasks.run_ml_inference")
 def run_ml_inference(self, user_id: str, clinical_data: dict):
     """
     Background task to run ML model inference
@@ -326,7 +326,7 @@ def run_ml_inference(self, user_id: str, clinical_data: dict):
     finally:
         db.close()
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="cg_worker.tasks.run_brain_tumor_inference")
 def run_brain_tumor_inference(self, image_data: list):
     """
     Background task to run brain tumor inference from an image.
@@ -369,7 +369,7 @@ def run_brain_tumor_inference(self, image_data: list):
         logger.error(f"Error in brain tumor inference: {e}")
         return {"status": "error", "message": str(e)}
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="cg_worker.tasks.run_mri_analysis_task")
 def run_mri_analysis_task(self, analysis_id: int, file_path: str):
     """
     Comprehensive MRI analysis task with AI-powered tumor detection

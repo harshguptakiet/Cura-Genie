@@ -1,312 +1,348 @@
-"""
-Comprehensive Report Generator for CuraGenie
-Generates user-friendly reports with risk scores and key variants
-"""
-
-import logging
 import json
-import time
+import logging
+from typing import Dict, Any, List
 from datetime import datetime
-from typing import Dict, List, Any
+from sqlalchemy.orm import Session
+
+from genomic_utils import GenomicProcessor
+from db.models import GenomicData, PrsScore
+from db.auth_models import User, PatientProfile, MedicalReport
 
 logger = logging.getLogger(__name__)
 
 class ReportGenerator:
-    """Generates comprehensive genomic analysis reports"""
+    """Real-time medical report generation service"""
     
     def __init__(self):
-        self.disease_templates = {
-            "diabetes": {
-                "description": "Type 2 Diabetes Risk Assessment",
-                "key_genes": ["TCF7L2", "PPARG", "KCNJ11", "CDKAL1"],
-                "recommendations": [
-                    "Monitor blood glucose levels regularly",
-                    "Maintain healthy diet and exercise routine",
-                    "Consult with endocrinologist if risk is high"
-                ]
-            },
-            "alzheimer": {
-                "description": "Alzheimer's Disease Risk Assessment", 
-                "key_genes": ["APOE", "APP", "PSEN1", "PSEN2", "TREM2"],
-                "recommendations": [
-                    "Regular cognitive assessments",
-                    "Maintain brain health through mental stimulation",
-                    "Consult with neurologist for baseline evaluation"
-                ]
-            },
-            "brain_tumor": {
-                "description": "Brain Tumor Risk Assessment",
-                "key_genes": ["TP53", "NF1", "NF2", "VHL", "PTCH1"],
-                "recommendations": [
-                    "Regular neurological examinations",
-                    "Immediate medical attention for new symptoms",
-                    "Consider genetic testing for family members"
-                ]
-            }
-        }
+        self.genomic_processor = GenomicProcessor()
     
-    def generate_comprehensive_report(
-        self,
-        user_id: str,
-        genomic_data: Dict[str, Any],
-        variant_annotations: List[Dict],
-        ml_predictions: Dict[str, Any],
-        processing_time: float
-    ) -> Dict[str, Any]:
-        """Generate comprehensive genomic analysis report"""
+    def generate_comprehensive_report(self, user_id: int, genomic_data_id: int, db: Session) -> Dict[str, Any]:
+        """Generate a comprehensive medical report for a user's genomic data"""
         
         try:
-            logger.info(f"Generating comprehensive report for user {user_id}")
+            # Get user and profile
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return {"status": "error", "message": "User not found"}
+                
+            profile = db.query(PatientProfile).filter(PatientProfile.user_id == user_id).first()
             
-            # Generate disease assessments
-            disease_assessments = []
-            for disease_type, prediction in ml_predictions.items():
-                if disease_type in self.disease_templates:
-                    assessment = self._generate_disease_assessment(
-                        disease_type, prediction, variant_annotations
+            # Get genomic data
+            genomic_data = db.query(GenomicData).filter(GenomicData.id == genomic_data_id).first()
+            if not genomic_data:
+                return {"status": "error", "message": "Genomic data not found"}
+            
+            # Get PRS scores
+            prs_scores = db.query(PrsScore).filter(PrsScore.genomic_data_id == genomic_data_id).all()
+            
+            # Process the genomic file for detailed analysis
+            file_analysis = None
+            if genomic_data.file_url:
+                try:
+                    with open(genomic_data.file_url, 'rb') as f:
+                        file_content = f.read()
+                    file_analysis = self.genomic_processor.process_genomic_file(
+                        file_content, genomic_data.filename
                     )
-                    disease_assessments.append(assessment)
+                except Exception as e:
+                    logger.warning(f"Could not reprocess genomic file: {e}")
             
-            # Generate variant summary
-            variant_summary = self._generate_variant_summary(variant_annotations)
-            
-            # Create report
-            report = {
-                'report_id': f"report_{int(time.time())}_{user_id}",
-                'user_id': user_id,
-                'timestamp': datetime.utcnow().isoformat(),
-                'processing_time_seconds': processing_time,
-                'file_analyzed': genomic_data.get('filename', 'Unknown'),
-                'total_variants': len(variant_annotations),
-                'annotated_variants': sum(1 for v in variant_annotations if v.get('functional_impact')),
-                'disease_assessments': disease_assessments,
-                'variant_summary': variant_summary,
-                'technical_details': {
-                    'pipeline_version': 'CuraGenie_v2.0_Advanced',
-                    'ml_models_used': list(ml_predictions.keys()),
-                    'annotation_sources': ['ClinVar', 'gnomAD', 'SIFT', 'PolyPhen-2']
-                },
-                'disclaimer': "This analysis is for informational purposes only. Consult healthcare professionals for medical advice."
+            # Generate comprehensive report
+            report_data = {
+                "report_id": f"RPT_{genomic_data_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "generated_at": datetime.now().isoformat(),
+                "patient_info": self._get_patient_info(user, profile),
+                "genomic_summary": self._get_genomic_summary(genomic_data, file_analysis),
+                "risk_assessment": self._get_risk_assessment(prs_scores),
+                "recommendations": self._generate_recommendations(prs_scores, profile),
+                "detailed_analysis": file_analysis,
+                "quality_assessment": self._get_quality_assessment(file_analysis),
+                "next_steps": self._get_next_steps(prs_scores)
             }
             
-            logger.info(f"✅ Comprehensive report generated successfully")
-            return report
+            # Save report to database
+            medical_report = MedicalReport(
+                user_id=user_id,
+                genomic_data_id=genomic_data_id,
+                report_title=f"Comprehensive Genomic Analysis - {genomic_data.filename}",
+                report_type="comprehensive_genomic",
+                report_data=json.dumps(report_data),
+                summary=self._generate_summary(report_data),
+                recommendations=self._format_recommendations(report_data["recommendations"]),
+                status="completed"
+            )
+            
+            db.add(medical_report)
+            db.commit()
+            db.refresh(medical_report)
+            
+            report_data["report_db_id"] = medical_report.id
+            
+            return {
+                "status": "success",
+                "report": report_data
+            }
             
         except Exception as e:
-            logger.error(f"❌ Error generating report: {e}")
-            raise
-    
-    def _generate_disease_assessment(
-        self,
-        disease_type: str,
-        ml_prediction: Dict[str, Any],
-        variant_annotations: List[Dict]
-    ) -> Dict[str, Any]:
-        """Generate disease-specific risk assessment"""
-        
-        template = self.disease_templates.get(disease_type, {})
-        
-        # Extract relevant variants
-        key_variants = self._extract_relevant_variants(disease_type, variant_annotations)
-        
-        # Generate evidence and recommendations
-        supporting_evidence = self._generate_evidence(disease_type, key_variants, ml_prediction)
-        recommendations = self._generate_recommendations(disease_type, ml_prediction, key_variants)
-        
-        return {
-            'disease_name': template.get('description', f"{disease_type.title()} Risk Assessment"),
-            'risk_score': ml_prediction.get('risk_score', 0.5),
-            'risk_level': ml_prediction.get('risk_level', 'Unknown'),
-            'confidence': ml_prediction.get('confidence', 0.0),
-            'key_variants': key_variants,
-            'supporting_evidence': supporting_evidence,
-            'recommendations': recommendations,
-            'model_metadata': {
-                'model_type': ml_prediction.get('model_type', 'Unknown'),
-                'features_used': ml_prediction.get('features_used', [])
+            logger.error(f"Error generating comprehensive report: {e}")
+            return {
+                "status": "error",
+                "message": f"Failed to generate report: {str(e)}"
             }
+    
+    def _get_patient_info(self, user: User, profile: PatientProfile) -> Dict[str, Any]:
+        """Extract patient information for the report"""
+        info = {
+            "user_id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "account_created": user.created_at.isoformat() if user.created_at else None
         }
+        
+        if profile:
+            info.update({
+                "name": f"{profile.first_name} {profile.last_name}".strip(),
+                "date_of_birth": profile.date_of_birth.isoformat() if profile.date_of_birth else None,
+                "age": self._calculate_age(profile.date_of_birth) if profile.date_of_birth else None,
+                "gender": profile.gender,
+                "blood_type": profile.blood_type,
+                "allergies": profile.allergies,
+                "current_medications": profile.current_medications,
+                "medical_history": profile.medical_history
+            })
+        
+        return info
     
-    def _extract_relevant_variants(
-        self,
-        disease_type: str,
-        variant_annotations: List[Dict]
-    ) -> List[Dict]:
-        """Extract variants relevant to specific disease"""
-        
-        relevant_variants = []
-        
-        for variant in variant_annotations:
-            if self._is_variant_relevant(variant, disease_type):
-                relevant_variants.append({
-                    'chrom': variant.get('chrom'),
-                    'pos': variant.get('pos'),
-                    'ref': variant.get('ref'),
-                    'alt': variant.get('alt'),
-                    'functional_impact': variant.get('functional_impact'),
-                    'clinvar_significance': variant.get('clinvar_significance'),
-                    'gnomad_frequency': variant.get('gnomad_af'),
-                    'relevance_score': self._calculate_relevance(variant)
-                })
-        
-        # Sort by relevance and return top variants
-        relevant_variants.sort(key=lambda x: x['relevance_score'], reverse=True)
-        return relevant_variants[:10]
-    
-    def _is_variant_relevant(self, variant: Dict[str, Any], disease_type: str) -> bool:
-        """Check if variant is relevant to disease"""
-        
-        # Check functional impact
-        if variant.get('functional_impact') in ['HIGH', 'MODERATE']:
-            return True
-        
-        # Check ClinVar significance
-        clinvar_sig = variant.get('clinvar_significance', '').lower()
-        if any(term in clinvar_sig for term in ['pathogenic', 'likely_pathogenic']):
-            return True
-        
-        # Check population frequency
-        gnomad_freq = variant.get('gnomad_af', 1.0)
-        if gnomad_freq < 0.01:  # Rare variants
-            return True
-        
-        return False
-    
-    def _calculate_relevance(self, variant: Dict[str, Any]) -> float:
-        """Calculate variant relevance score"""
-        
-        score = 0.0
-        
-        # Functional impact
-        impact_scores = {'HIGH': 1.0, 'MODERATE': 0.7, 'LOW': 0.3, 'MODIFIER': 0.1}
-        impact = variant.get('functional_impact', 'MODIFIER')
-        score += impact_scores.get(impact, 0.0)
-        
-        # ClinVar significance
-        clinvar_scores = {
-            'pathogenic': 1.0, 'likely_pathogenic': 0.8,
-            'uncertain_significance': 0.5, 'likely_benign': 0.2, 'benign': 0.1
+    def _get_genomic_summary(self, genomic_data: GenomicData, file_analysis: Dict) -> Dict[str, Any]:
+        """Generate genomic data summary"""
+        summary = {
+            "filename": genomic_data.filename,
+            "uploaded_at": genomic_data.uploaded_at.isoformat() if genomic_data.uploaded_at else None,
+            "file_size": None,
+            "file_type": None,
+            "processing_status": genomic_data.status
         }
-        clinvar_sig = variant.get('clinvar_significance', 'uncertain_significance').lower()
-        score += clinvar_scores.get(clinvar_sig, 0.5)
         
-        # Population frequency (rarer = more relevant)
-        gnomad_freq = variant.get('gnomad_af', 0.5)
-        if gnomad_freq < 0.001:
-            score += 0.3
-        elif gnomad_freq < 0.01:
-            score += 0.2
+        # Parse metadata
+        try:
+            metadata = json.loads(genomic_data.metadata_json) if genomic_data.metadata_json else {}
+            summary["file_size"] = metadata.get("file_size_bytes")
+            summary["upload_method"] = metadata.get("upload_method")
+        except:
+            pass
         
-        return min(score, 1.0)
+        # Add file analysis results
+        if file_analysis and "status" not in file_analysis:
+            summary.update({
+                "file_type": file_analysis.get("file_type"),
+                "total_variants": file_analysis.get("total_variants"),
+                "total_sequences": file_analysis.get("total_sequences"),
+                "analysis_quality": file_analysis.get("quality_assessment", {}).get("overall_quality")
+            })
+        
+        return summary
     
-    def _generate_evidence(
-        self,
-        disease_type: str,
-        key_variants: List[Dict],
-        ml_prediction: Dict[str, Any]
-    ) -> List[str]:
-        """Generate supporting evidence"""
+    def _get_risk_assessment(self, prs_scores: List[PrsScore]) -> Dict[str, Any]:
+        """Generate risk assessment from PRS scores"""
+        assessment = {
+            "total_conditions_analyzed": len(prs_scores),
+            "high_risk_conditions": [],
+            "moderate_risk_conditions": [],
+            "low_risk_conditions": [],
+            "risk_summary": {}
+        }
         
-        evidence = []
+        for score in prs_scores:
+            risk_info = {
+                "disease_type": score.disease_type,
+                "score": score.score,
+                "calculated_at": score.calculated_at.isoformat() if score.calculated_at else None,
+                "risk_level": self._interpret_risk_score(score.score)
+            }
+            
+            if score.score >= 0.7:
+                assessment["high_risk_conditions"].append(risk_info)
+            elif score.score >= 0.4:
+                assessment["moderate_risk_conditions"].append(risk_info)
+            else:
+                assessment["low_risk_conditions"].append(risk_info)
+            
+            assessment["risk_summary"][score.disease_type] = risk_info
         
-        # ML model evidence
-        if ml_prediction.get('confidence', 0) > 0.7:
-            evidence.append(f"High-confidence prediction from {ml_prediction.get('model_type', 'ML model')}")
-        
-        # Variant evidence
-        high_impact = [v for v in key_variants if v.get('functional_impact') == 'HIGH']
-        if high_impact:
-            evidence.append(f"Found {len(high_impact)} high-impact genetic variants")
-        
-        pathogenic = [v for v in key_variants if 'pathogenic' in str(v.get('clinvar_significance', '')).lower()]
-        if pathogenic:
-            evidence.append(f"Identified {len(pathogenic)} clinically significant variants")
-        
-        rare = [v for v in key_variants if v.get('gnomad_frequency', 1.0) < 0.01]
-        if rare:
-            evidence.append(f"Detected {len(rare)} rare genetic variants")
-        
-        return evidence
+        return assessment
     
-    def _generate_recommendations(
-        self,
-        disease_type: str,
-        ml_prediction: Dict[str, Any],
-        key_variants: List[Dict]
-    ) -> List[str]:
-        """Generate personalized recommendations"""
+    def _generate_recommendations(self, prs_scores: List[PrsScore], profile: PatientProfile) -> List[Dict[str, Any]]:
+        """Generate personalized recommendations based on risk scores"""
+        recommendations = []
         
-        base_recs = self.disease_templates.get(disease_type, {}).get('recommendations', [])
-        recommendations = base_recs.copy()
+        # General recommendations
+        recommendations.append({
+            "category": "General Health",
+            "priority": "medium",
+            "recommendation": "Maintain regular health checkups and screenings",
+            "rationale": "Proactive health monitoring is essential for early detection and prevention"
+        })
         
-        risk_level = ml_prediction.get('risk_level', 'Unknown')
+        for score in prs_scores:
+            disease_type = score.disease_type
+            risk_level = self._interpret_risk_score(score.score)
+            
+            if disease_type in ["cardiovascular_disease", "heart_disease"]:
+                if score.score >= 0.6:
+                    recommendations.append({
+                        "category": "Cardiovascular Health",
+                        "priority": "high",
+                        "recommendation": "Consult with a cardiologist for comprehensive evaluation",
+                        "rationale": f"Your PRS score of {score.score:.2f} indicates elevated cardiovascular risk"
+                    })
+                    recommendations.append({
+                        "category": "Lifestyle",
+                        "priority": "high",
+                        "recommendation": "Adopt a heart-healthy diet and regular exercise routine",
+                        "rationale": "Lifestyle modifications can significantly reduce cardiovascular risk"
+                    })
+                
+            elif disease_type in ["diabetes_type2", "diabetes"]:
+                if score.score >= 0.5:
+                    recommendations.append({
+                        "category": "Metabolic Health",
+                        "priority": "high",
+                        "recommendation": "Regular blood glucose monitoring and diabetes screening",
+                        "rationale": f"Elevated diabetes risk (PRS: {score.score:.2f}) warrants closer monitoring"
+                    })
+                    recommendations.append({
+                        "category": "Diet",
+                        "priority": "medium",
+                        "recommendation": "Consider consultation with a nutritionist for diabetes prevention diet",
+                        "rationale": "Dietary modifications can help prevent or delay type 2 diabetes onset"
+                    })
+                
+            elif disease_type in ["alzheimer_disease", "alzheimer"]:
+                if score.score >= 0.4:
+                    recommendations.append({
+                        "category": "Cognitive Health",
+                        "priority": "medium",
+                        "recommendation": "Regular cognitive assessments and brain-healthy lifestyle practices",
+                        "rationale": f"Elevated Alzheimer's risk (PRS: {score.score:.2f}) suggests need for cognitive monitoring"
+                    })
+                    recommendations.append({
+                        "category": "Lifestyle",
+                        "priority": "medium",
+                        "recommendation": "Engage in regular mental stimulation and physical exercise",
+                        "rationale": "These activities may help maintain cognitive health and reduce dementia risk"
+                    })
         
-        # Risk-specific recommendations
-        if risk_level in ['High Risk', 'Very High Risk']:
-            recommendations.append("Schedule consultation with specialist within 2-4 weeks")
-            recommendations.append("Consider additional genetic testing for family members")
-        
-        elif risk_level == 'Moderate Risk':
-            recommendations.append("Schedule follow-up consultation within 3-6 months")
-            recommendations.append("Monitor for new symptoms or changes")
-        
-        # Variant-specific recommendations
-        if any(v.get('functional_impact') == 'HIGH' for v in key_variants):
-            recommendations.append("High-impact variants detected - consider genetic counseling")
+        # Medication interaction warnings
+        if profile and profile.current_medications:
+            recommendations.append({
+                "category": "Medication Safety",
+                "priority": "high",
+                "recommendation": "Discuss genomic results with your healthcare provider",
+                "rationale": "Your current medications may interact with genetic predispositions"
+            })
         
         return recommendations
     
-    def _generate_variant_summary(self, variant_annotations: List[Dict]) -> Dict[str, Any]:
-        """Generate variant summary statistics"""
+    def _get_quality_assessment(self, file_analysis: Dict) -> Dict[str, Any]:
+        """Extract quality assessment from file analysis"""
+        if not file_analysis or "status" in file_analysis:
+            return {"status": "no_analysis_available"}
         
-        if not variant_annotations:
-            return {}
-        
-        # Count by functional impact
-        impact_counts = {}
-        for variant in variant_annotations:
-            impact = variant.get('functional_impact', 'unknown')
-            impact_counts[impact] = impact_counts.get(impact, 0) + 1
-        
-        # Count by ClinVar significance
-        clinvar_counts = {}
-        for variant in variant_annotations:
-            clinvar_sig = variant.get('clinvar_significance', 'unknown')
-            clinvar_counts[clinvar_sig] = clinvar_counts.get(clinvar_sig, 0) + 1
+        quality_assessment = file_analysis.get("quality_assessment", {})
         
         return {
-            'total_variants': len(variant_annotations),
-            'impact_distribution': impact_counts,
-            'clinvar_distribution': clinvar_counts,
-            'rare_variants': sum(1 for v in variant_annotations if v.get('gnomad_af', 1.0) < 0.01),
-            'pathogenic_variants': sum(1 for v in variant_annotations 
-                                    if 'pathogenic' in str(v.get('clinvar_significance', '')).lower())
+            "overall_quality": quality_assessment.get("overall_quality", "Unknown"),
+            "pass_filters": quality_assessment.get("pass_filters", False),
+            "issues": quality_assessment.get("issues", []),
+            "recommendations": quality_assessment.get("recommendations", [])
         }
     
-    def export_report_json(self, report: Dict[str, Any]) -> str:
-        """Export report to JSON format"""
-        return json.dumps(report, indent=2, default=str)
-    
-    def export_report_summary(self, report: Dict[str, Any]) -> Dict[str, Any]:
-        """Export simplified report summary"""
+    def _get_next_steps(self, prs_scores: List[PrsScore]) -> List[Dict[str, Any]]:
+        """Generate next steps based on analysis results"""
+        next_steps = []
         
-        return {
-            'report_id': report['report_id'],
-            'timestamp': report['timestamp'],
-            'processing_time': report['processing_time_seconds'],
-            'total_variants': report['total_variants'],
-            'disease_risks': [
-                {
-                    'disease': assessment['disease_name'],
-                    'risk_level': assessment['risk_level'],
-                    'risk_score': assessment['risk_score'],
-                    'confidence': assessment['confidence']
-                }
-                for assessment in report['disease_assessments']
-            ],
-            'key_findings': {
-                'high_impact_variants': report['variant_summary'].get('pathogenic_variants', 0),
-                'rare_variants': report['variant_summary'].get('rare_variants', 0),
-                'annotation_rate': report['annotated_variants'] / report['total_variants'] if report['total_variants'] > 0 else 0
+        # Determine highest risk areas
+        high_risk_scores = [score for score in prs_scores if score.score >= 0.6]
+        
+        if high_risk_scores:
+            next_steps.append({
+                "step": "Schedule specialist consultations",
+                "timeframe": "Within 1-2 months",
+                "description": "Based on your high-risk genetic predispositions, consult with relevant specialists",
+                "priority": "high"
+            })
+        
+        next_steps.extend([
+            {
+                "step": "Share results with primary care physician",
+                "timeframe": "Within 2 weeks",
+                "description": "Discuss your genomic analysis results with your doctor",
+                "priority": "high"
+            },
+            {
+                "step": "Consider additional genetic counseling",
+                "timeframe": "Within 1 month",
+                "description": "A genetic counselor can help interpret results and plan preventive measures",
+                "priority": "medium"
+            },
+            {
+                "step": "Update family medical history",
+                "timeframe": "Ongoing",
+                "description": "Share relevant findings with family members who might benefit",
+                "priority": "low"
+            },
+            {
+                "step": "Regular monitoring and updates",
+                "timeframe": "Every 6-12 months",
+                "description": "Stay updated with new genomic research relevant to your profile",
+                "priority": "medium"
             }
-        }
+        ])
+        
+        return next_steps
+    
+    def _interpret_risk_score(self, score: float) -> str:
+        """Interpret PRS score into risk level"""
+        if score >= 0.8:
+            return "Very High"
+        elif score >= 0.6:
+            return "High"
+        elif score >= 0.4:
+            return "Moderate"
+        elif score >= 0.2:
+            return "Low"
+        else:
+            return "Very Low"
+    
+    def _calculate_age(self, date_of_birth: datetime) -> int:
+        """Calculate age from date of birth"""
+        today = datetime.now()
+        return today.year - date_of_birth.year - ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
+    
+    def _generate_summary(self, report_data: Dict) -> str:
+        """Generate text summary of the report"""
+        patient_name = report_data["patient_info"].get("name", "Patient")
+        total_conditions = report_data["risk_assessment"]["total_conditions_analyzed"]
+        high_risk_count = len(report_data["risk_assessment"]["high_risk_conditions"])
+        
+        summary = f"Comprehensive genomic analysis for {patient_name}. "
+        summary += f"Analyzed {total_conditions} health conditions. "
+        
+        if high_risk_count > 0:
+            summary += f"Found {high_risk_count} high-risk condition(s) requiring attention. "
+        
+        summary += f"Generated {len(report_data['recommendations'])} personalized recommendations. "
+        summary += "See detailed report for complete analysis and next steps."
+        
+        return summary
+    
+    def _format_recommendations(self, recommendations: List[Dict]) -> str:
+        """Format recommendations as text"""
+        if not recommendations:
+            return "No specific recommendations generated."
+        
+        formatted = []
+        for rec in recommendations:
+            formatted.append(f"• [{rec['category']}] {rec['recommendation']} ({rec['priority']} priority)")
+        
+        return "\n".join(formatted)

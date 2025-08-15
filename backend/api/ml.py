@@ -9,7 +9,7 @@ import io
 from db.database import get_db
 from db.models import MlPrediction
 from schemas.schemas import MlPredictionResponse, MlInferenceRequest
-from worker.tasks import run_ml_inference, run_brain_tumor_inference
+from cg_worker.tasks import run_ml_inference, run_brain_tumor_inference
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/ml", tags=["ml"])
