@@ -36,6 +36,9 @@ from core.errors import (
 # Import unified authentication system
 from api.auth import router as auth_router
 
+# Import configuration manager
+from core.config import config_manager
+
 # Setup logging first
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -53,20 +56,20 @@ app = FastAPI(
 setup_middleware(app)
 setup_exception_handlers(app)
 
-# Add CORS middleware
+# Add CORS middleware with environment-specific configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "*"],
+    allow_origins=config_manager.get_cors_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
 # Include authentication router
 app.include_router(auth_router, prefix="/api")
 
-# Database setup
-DATABASE_PATH = "curagenie_real.db"
+# Database setup with environment-specific configuration
+DATABASE_PATH = config_manager.get("DATABASE_URL", "curagenie_real.db")
 UPLOADS_DIR = Path("uploads")
 UPLOADS_DIR.mkdir(exist_ok=True)
 
