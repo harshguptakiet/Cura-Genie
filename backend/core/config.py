@@ -32,6 +32,18 @@ class Settings(BaseSettings):
     llm_provider: str = "openai"  # options: "openai", "anthropic", "ollama"
     llm_model: str = "gpt-3.5-turbo"  # model to use
     
+    # Error Handling and Logging
+    log_level: str = "INFO"
+    log_file_path: str = "logs/curagenie.log"
+    error_log_path: str = "logs/errors.log"
+    request_log_path: str = "logs/requests.log"
+    operation_log_path: str = "logs/operations.log"
+    enable_request_logging: bool = True
+    enable_operation_logging: bool = True
+    log_retention_days: int = 30
+    enable_error_tracking: bool = True
+    error_alert_threshold: int = 10  # Alert after 10 errors in 1 minute
+    
     def get_cors_origins(self) -> List[str]:
         """Parse CORS origins from string to list"""
         return [origin.strip() for origin in self.cors_origins.split(",")]
