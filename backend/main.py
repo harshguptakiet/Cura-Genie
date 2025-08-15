@@ -100,93 +100,93 @@ async def startup_event():
 def init_database():
     """Initialize SQLite database with all required tables"""
     try:
-        conn = sqlite3.connect(DATABASE_PATH)
-        cursor = conn.cursor()
-        
-        # Users table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                role TEXT DEFAULT 'patient',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_active BOOLEAN DEFAULT 1
-            )
-        """)
-        
-        # Files table with processing status
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS uploaded_files (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                filename TEXT NOT NULL,
-                original_filename TEXT NOT NULL,
-                file_type TEXT NOT NULL,
-                file_path TEXT NOT NULL,
-                file_size INTEGER,
-                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                processing_status TEXT DEFAULT 'pending',
-                processing_result TEXT,
-                metadata_json TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        """)
-        
-        # PRS Scores table with real calculations
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS prs_scores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                file_id INTEGER,
-                disease_type TEXT NOT NULL,
-                score REAL NOT NULL,
-                risk_level TEXT NOT NULL,
-                percentile REAL,
-                variants_used INTEGER,
-                confidence REAL,
-                calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
-            )
-        """)
-        
-        # Timeline events table - REAL events
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS timeline_events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                event_type TEXT NOT NULL,
-                title TEXT NOT NULL,
-                description TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                metadata_json TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        """)
-        
-        # Genomic variants table for browser
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS genomic_variants (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                file_id INTEGER,
-                chromosome TEXT NOT NULL,
-                position INTEGER NOT NULL,
-                reference TEXT NOT NULL,
-                alternative TEXT NOT NULL,
-                variant_type TEXT NOT NULL,
-                quality REAL,
-                variant_id TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
-            )
-        """)
-        
-        conn.commit()
-        conn.close()
-        logger.info("✅ Database initialized with real schema")
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+    
+    # Users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT DEFAULT 'patient',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1
+        )
+    """)
+    
+    # Files table with processing status
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS uploaded_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            filename TEXT NOT NULL,
+            original_filename TEXT NOT NULL,
+            file_type TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            file_size INTEGER,
+            upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            processing_status TEXT DEFAULT 'pending',
+            processing_result TEXT,
+            metadata_json TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    
+    # PRS Scores table with real calculations
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS prs_scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            file_id INTEGER,
+            disease_type TEXT NOT NULL,
+            score REAL NOT NULL,
+            risk_level TEXT NOT NULL,
+            percentile REAL,
+            variants_used INTEGER,
+            confidence REAL,
+            calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
+        )
+    """)
+    
+    # Timeline events table - REAL events
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS timeline_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            event_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            metadata_json TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    
+    # Genomic variants table for browser
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS genomic_variants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            file_id INTEGER,
+            chromosome TEXT NOT NULL,
+            position INTEGER NOT NULL,
+            reference TEXT NOT NULL,
+            alternative TEXT NOT NULL,
+            variant_type TEXT NOT NULL,
+            quality REAL,
+            variant_id TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
+        )
+    """)
+    
+    conn.commit()
+    conn.close()
+    logger.info("✅ Database initialized with real schema")
     except Exception as e:
         logger.error(f"❌ Error initializing database: {e}")
 
@@ -227,15 +227,15 @@ def get_db_connection():
 def create_timeline_event(user_id: int, event_type: str, title: str, description: str, metadata: Dict = None):
     """Create a real timeline event"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO timeline_events (user_id, event_type, title, description, metadata_json)
-            VALUES (?, ?, ?, ?, ?)
-        """, (user_id, event_type, title, description, json.dumps(metadata) if metadata else None))
-        conn.commit()
-        conn.close()
-        logger.info(f"📅 Timeline event created: {title}")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO timeline_events (user_id, event_type, title, description, metadata_json)
+        VALUES (?, ?, ?, ?, ?)
+    """, (user_id, event_type, title, description, json.dumps(metadata) if metadata else None))
+    conn.commit()
+    conn.close()
+    logger.info(f"📅 Timeline event created: {title}")
     except Exception as e:
         logger.error(f"❌ Error creating timeline event: {e}")
         raise ProcessingError(f"Failed to create timeline event: {e}")
@@ -940,25 +940,25 @@ async def real_chatbot(message: dict):
 @app.post("/api/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
     try:
-        user = authenticate_user(credentials.email, credentials.password)
-        if not user:
-            # Create demo user if doesn't exist
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("INSERT OR IGNORE INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
-                          (credentials.email, credentials.email.split('@')[0], credentials.password, 'patient'))
-            user_id = cursor.lastrowid or 1
-            conn.commit()
-            conn.close()
-        else:
-            user_id = user[0]
-        
-        return Token(
-            access_token=f"token-{user_id}-{datetime.now().timestamp()}",
-            token_type="bearer",
-            user_id=user_id,
-            role="patient"
-        )
+    user = authenticate_user(credentials.email, credentials.password)
+    if not user:
+        # Create demo user if doesn't exist
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR IGNORE INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
+                      (credentials.email, credentials.email.split('@')[0], credentials.password, 'patient'))
+        user_id = cursor.lastrowid or 1
+        conn.commit()
+        conn.close()
+    else:
+        user_id = user[0]
+    
+    return Token(
+        access_token=f"token-{user_id}-{datetime.now().timestamp()}",
+        token_type="bearer",
+        user_id=user_id,
+        role="patient"
+    )
     except AuthenticationError as e:
         raise e
     except Exception as e:
@@ -981,7 +981,7 @@ async def get_current_user():
         if not user:
             raise AuthenticationError("User not found")
 
-        return {
+    return {
             "id": user[0],
             "email": user[1],
             "username": user[2],
