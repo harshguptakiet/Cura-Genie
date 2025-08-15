@@ -79,9 +79,9 @@ ENV PYTHONUNBUFFERED=1
 # Expose port (Railway will provide $PORT)
 EXPOSE $PORT
 
-# Health check
+# Health check using python requests (curl may not be installed)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health || exit 1
+    CMD python -c "import requests,os,sys; sys.exit(0 if requests.get(f'http://localhost:{os.getenv('PORT','8000')}/health', timeout=5).status_code==200 else 1)"
 
 # Start command for Railway
 CMD ["sh", "-c", "gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --host 0.0.0.0 --port $PORT --access-logfile - --error-logfile -"]

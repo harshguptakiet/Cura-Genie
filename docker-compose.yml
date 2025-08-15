@@ -1,89 +1,133 @@
-version: '3.8'
-
 services:
-  backend:
-    build:
-      context: ./backend
-      target: ${ENVIRONMENT:-development}
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - CORS_ORIGINS=${CORS_ORIGINS}
-      - DEBUG=${DEBUG:-false}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-    env_file:
-      - .env.${ENVIRONMENT:-development}
-    volumes:
-      - ./backend:/app
-      - ./logs:/app/logs
-    depends_on:
-      - redis
-    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    # Do not publish Redis port on host to avoid conflicts; services use internal network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - curagenie-network
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      target: ${ENVIRONMENT:-development}
+      dockerfile: Dockerfile
+      target: runner
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-      - NEXT_PUBLIC_ENVIRONMENT=${ENVIRONMENT:-development}
-      - NEXT_PUBLIC_ENABLE_DEBUG=${DEBUG:-false}
-    env_file:
-      - .env.${ENVIRONMENT:-development}
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      # Frontend environment variables
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      # Use localhost so browser clients can reach the API from host network
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8001
+      - NEXT_PUBLIC_ENVIRONMENT=production
+      - NEXT_PUBLIC_APP_VERSION=2.0.0-production
+      - NEXT_PUBLIC_ENABLE_DEBUG=false
     depends_on:
-      - backend
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
+      backend:
+        condition: service_healthy
+    networks:
+      - curagenie-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
-  postgres:
-    image: postgres:15-alpine
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-curagenie}
-      - POSTGRES_USER=${POSTGRES_USER:-curagenie}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Backend environment variables
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      # Use SQLite in a volume for local compose; override with Postgres DATABASE_URL in cloud
+      - DATABASE_URL=sqlite:////app/data/curagenie.db
+      - PORT=8000
+      - DEBUG=false
+      - ENVIRONMENT=production
+      - SECRET_KEY=production-secret-key-change-me-in-real-deployment
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      - CORS_ALLOW_CREDENTIALS=true
+      - MAX_FILE_SIZE_MB=100
+      - UPLOADS_DIR=/app/data/uploads
+      - ENABLE_REAL_GENOMIC_ANALYSIS=true
+      - ENABLE_ENHANCED_MRI=true
+      - ENABLE_ML=true
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+      - OMP_NUM_THREADS=1
+      - TF_NUM_INTRAOP_THREADS=1
+      - TF_NUM_INTEROP_THREADS=1
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - backend_uploads:/app/data/uploads
+      - backend_db:/app/data
+      - backend_logs:/app/logs
+    networks:
+      - curagenie-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-curagenie}"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 15s
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:////app/data/curagenie.db
+      - DEBUG=false
+      - ENVIRONMENT=production
+      - SECRET_KEY=production-secret-key-change-me-in-real-deployment
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - ENABLE_REAL_GENOMIC_ANALYSIS=true
+      - ENABLE_ENHANCED_MRI=true
+      - ENABLE_ML=true
+      - LOG_LEVEL=INFO
+      - OMP_NUM_THREADS=1
+      - TF_NUM_INTRAOP_THREADS=1
+      - TF_NUM_INTEROP_THREADS=1
+    command: ["python", "cg_worker/worker.py"]
+    networks:
+      - curagenie-network
+    restart: unless-stopped
+networks:
+  curagenie-network:
+    driver: bridge
+    name: curagenie-network
 
 volumes:
-  redis_data:
-  postgres_data:
-
-networks:
-  default:
-    name: curagenie_network
+  backend_uploads:
+    name: curagenie_uploads
+  backend_db:
+    name: curagenie_database
+  backend_logs:
+    name: curagenie_logs

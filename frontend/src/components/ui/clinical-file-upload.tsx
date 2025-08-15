@@ -88,10 +88,12 @@ const uploadClinicalFile = async (
       reject(new Error('Upload failed due to network error'));
     });
     
-    // Use clinical file upload endpoint
-    xhr.open('POST', `http://localhost:8000/api/local-upload/clinical-data/${assessmentType}`);
+    // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    // If you implement clinical upload server route, update the path accordingly:
+    xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
     
-    // Remove authentication header for test endpoint
+    // If you switch to an authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }

@@ -80,10 +80,12 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
       reject(new Error('Upload failed due to network error'));
     });
     
-    // Use the working genomic upload endpoint
-    xhr.open('POST', 'http://localhost:8000/api/upload/genomic');
+    // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    // Use the unauthenticated test endpoint for uploads
+    xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
     
-    // Remove authentication header for test endpoint
+    // If you switch to the authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }

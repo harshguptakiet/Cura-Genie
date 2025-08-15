@@ -2,12 +2,11 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 
 export const navigationRoutes = {
   home: '/',
-  landing: '/landing',
+  landing: '/landing', 
   login: '/auth/login',
   register: '/auth/register',
   dashboard: '/dashboard',
-  debugAuth: '/debug-auth',
-  enhancedGenomic: '/enhanced-genomic'
+  debugAuth: '/debug-auth'
 } as const
 
 export type NavigationRoute = keyof typeof navigationRoutes
