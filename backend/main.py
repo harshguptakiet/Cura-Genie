@@ -33,6 +33,9 @@ from core.errors import (
     log_operation_result, get_request_context
 )
 
+# Import unified authentication system
+from api.auth import router as auth_router
+
 # Setup logging first
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -59,10 +62,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include authentication router
+app.include_router(auth_router, prefix="/api")
+
 # Database setup
 DATABASE_PATH = "curagenie_real.db"
 UPLOADS_DIR = Path("uploads")
 UPLOADS_DIR.mkdir(exist_ok=True)
+
+# Startup event to test database connection
+@app.on_event("startup")
+async def startup_event():
+    """Test database connection on startup"""
+    try:
+        logger.info("🔍 Testing database connection...")
+        
+        # Import database functions
+        from db.database import test_database_connection, get_database_url
+        
+        # Test the connection
+        if test_database_connection():
+            database_url = get_database_url()
+            if database_url.startswith('postgresql://'):
+                logger.info("✅ Connected to Neon PostgreSQL database successfully!")
+            else:
+                logger.info("✅ Connected to SQLite database successfully!")
+        else:
+            logger.error("❌ Database connection failed!")
+            
+    except Exception as e:
+        logger.error(f"❌ Error during startup: {e}")
+        logger.warning("⚠️  Application will continue but database features may not work")
 
 def init_database():
     """Initialize SQLite database with all required tables"""
@@ -207,17 +237,9 @@ def create_timeline_event(user_id: int, event_type: str, title: str, description
         logger.error(f"❌ Error creating timeline event: {e}")
         raise ProcessingError(f"Failed to create timeline event: {e}")
 
-def authenticate_user(email: str, password: str):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
-        user = cursor.fetchone()
-        conn.close()
-        return user
-    except Exception as e:
-        logger.error(f"❌ Error authenticating user: {e}")
-        raise AuthenticationError(f"Authentication failed: {e}")
+# REMOVED: Plain text authentication function
+# This has been replaced by the secure authentication system in core/auth_service.py
+# Use the unified authentication endpoints at /auth/* instead
 
 def process_genomic_file_background(file_path: str, file_id: int, user_id: int, file_type: str):
     """Background task to process genomic files"""
