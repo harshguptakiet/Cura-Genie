@@ -3,9 +3,9 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database
-    # PostgreSQL (for production): "postgresql://postgres:password@localhost:5432/curagenie"
-    # SQLite (for development):
-    database_url: str = "sqlite:///./curagenie.db"
+    # PostgreSQL (for production): Use DATABASE_URL environment variable
+    # SQLite (for development): sqlite:///./curagenie.db
+    database_url: str = "postgresql://"  # Will be overridden by DATABASE_URL env var
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -50,5 +50,9 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        # Map environment variable names to field names
+        fields = {
+            'database_url': {'env': 'DATABASE_URL'},
+        }
 
 settings = Settings()
