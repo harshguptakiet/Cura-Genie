@@ -23,8 +23,18 @@ from pathlib import Path
 # Import our real genomic processing utilities
 from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator, GenomicQualityController
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Import error handling and logging components
+from core.logging_config import setup_logging
+from core.middleware import setup_middleware
+from core.exception_handlers import setup_exception_handlers
+from core.errors import (
+    CuraGenieError, ValidationError, AuthenticationError, 
+    ProcessingError, DatabaseError, ExternalServiceError,
+    log_operation_result, get_request_context
+)
+
+# Setup logging first
+setup_logging()
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
@@ -35,6 +45,10 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Setup error handling and logging middleware
+setup_middleware(app)
+setup_exception_handlers(app)
 
 # Add CORS middleware
 app.add_middleware(
@@ -52,93 +66,96 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 
 def init_database():
     """Initialize SQLite database with all required tables"""
-    conn = sqlite3.connect(DATABASE_PATH)
-    cursor = conn.cursor()
-    
-    # Users table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT DEFAULT 'patient',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            is_active BOOLEAN DEFAULT 1
-        )
-    """)
-    
-    # Files table with processing status
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS uploaded_files (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            filename TEXT NOT NULL,
-            original_filename TEXT NOT NULL,
-            file_type TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            file_size INTEGER,
-            upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            processing_status TEXT DEFAULT 'pending',
-            processing_result TEXT,
-            metadata_json TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (id)
-        )
-    """)
-    
-    # PRS Scores table with real calculations
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS prs_scores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            file_id INTEGER,
-            disease_type TEXT NOT NULL,
-            score REAL NOT NULL,
-            risk_level TEXT NOT NULL,
-            percentile REAL,
-            variants_used INTEGER,
-            confidence REAL,
-            calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
-        )
-    """)
-    
-    # Timeline events table - REAL events
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS timeline_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            event_type TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            metadata_json TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (id)
-        )
-    """)
-    
-    # Genomic variants table for browser
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS genomic_variants (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            file_id INTEGER,
-            chromosome TEXT NOT NULL,
-            position INTEGER NOT NULL,
-            reference TEXT NOT NULL,
-            alternative TEXT NOT NULL,
-            variant_type TEXT NOT NULL,
-            quality REAL,
-            variant_id TEXT,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
-    logger.info("✅ Database initialized with real schema")
+    try:
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        
+        # Users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT DEFAULT 'patient',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                is_active BOOLEAN DEFAULT 1
+            )
+        """)
+        
+        # Files table with processing status
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS uploaded_files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                filename TEXT NOT NULL,
+                original_filename TEXT NOT NULL,
+                file_type TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                file_size INTEGER,
+                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                processing_status TEXT DEFAULT 'pending',
+                processing_result TEXT,
+                metadata_json TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
+        
+        # PRS Scores table with real calculations
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS prs_scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                file_id INTEGER,
+                disease_type TEXT NOT NULL,
+                score REAL NOT NULL,
+                risk_level TEXT NOT NULL,
+                percentile REAL,
+                variants_used INTEGER,
+                confidence REAL,
+                calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
+            )
+        """)
+        
+        # Timeline events table - REAL events
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS timeline_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                event_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                metadata_json TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        """)
+        
+        # Genomic variants table for browser
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS genomic_variants (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                file_id INTEGER,
+                chromosome TEXT NOT NULL,
+                position INTEGER NOT NULL,
+                reference TEXT NOT NULL,
+                alternative TEXT NOT NULL,
+                variant_type TEXT NOT NULL,
+                quality REAL,
+                variant_id TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files (id)
+            )
+        """)
+        
+        conn.commit()
+        conn.close()
+        logger.info("✅ Database initialized with real schema")
+    except Exception as e:
+        logger.error(f"❌ Error initializing database: {e}")
 
 # Initialize database on startup
 init_database()
@@ -167,27 +184,40 @@ class Token(BaseModel):
 
 # Helper functions
 def get_db_connection():
-    return sqlite3.connect(DATABASE_PATH)
+    try:
+        conn = sqlite3.connect(DATABASE_PATH)
+        return conn
+    except sqlite3.Error as e:
+        logger.error(f"❌ Error getting database connection: {e}")
+        raise DatabaseError(f"Failed to connect to database: {e}")
 
 def create_timeline_event(user_id: int, event_type: str, title: str, description: str, metadata: Dict = None):
     """Create a real timeline event"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO timeline_events (user_id, event_type, title, description, metadata_json)
-        VALUES (?, ?, ?, ?, ?)
-    """, (user_id, event_type, title, description, json.dumps(metadata) if metadata else None))
-    conn.commit()
-    conn.close()
-    logger.info(f"📅 Timeline event created: {title}")
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO timeline_events (user_id, event_type, title, description, metadata_json)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, event_type, title, description, json.dumps(metadata) if metadata else None))
+        conn.commit()
+        conn.close()
+        logger.info(f"📅 Timeline event created: {title}")
+    except Exception as e:
+        logger.error(f"❌ Error creating timeline event: {e}")
+        raise ProcessingError(f"Failed to create timeline event: {e}")
 
 def authenticate_user(email: str, password: str):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
-    user = cursor.fetchone()
-    conn.close()
-    return user
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ? AND password = ?", (email, password))
+        user = cursor.fetchone()
+        conn.close()
+        return user
+    except Exception as e:
+        logger.error(f"❌ Error authenticating user: {e}")
+        raise AuthenticationError(f"Authentication failed: {e}")
 
 def process_genomic_file_background(file_path: str, file_id: int, user_id: int, file_type: str):
     """Background task to process genomic files"""
@@ -884,35 +914,60 @@ async def real_chatbot(message: dict):
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
-    user = authenticate_user(credentials.email, credentials.password)
-    if not user:
-        # Create demo user if doesn't exist
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR IGNORE INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
-                      (credentials.email, credentials.email.split('@')[0], credentials.password, 'patient'))
-        user_id = cursor.lastrowid or 1
-        conn.commit()
-        conn.close()
-    else:
-        user_id = user[0]
-    
-    return Token(
-        access_token=f"token-{user_id}-{datetime.now().timestamp()}",
-        token_type="bearer",
-        user_id=user_id,
-        role="patient"
-    )
+    try:
+        user = authenticate_user(credentials.email, credentials.password)
+        if not user:
+            # Create demo user if doesn't exist
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("INSERT OR IGNORE INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
+                          (credentials.email, credentials.email.split('@')[0], credentials.password, 'patient'))
+            user_id = cursor.lastrowid or 1
+            conn.commit()
+            conn.close()
+        else:
+            user_id = user[0]
+        
+        return Token(
+            access_token=f"token-{user_id}-{datetime.now().timestamp()}",
+            token_type="bearer",
+            user_id=user_id,
+            role="patient"
+        )
+    except AuthenticationError as e:
+        raise e
+    except Exception as e:
+        logger.error(f"❌ Login error: {e}")
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @app.get("/api/auth/me")
 async def get_current_user():
-    return {
-        "id": 1,
-        "email": "demo@curagenie.com",
-        "username": "demo_user",
-        "role": "patient",
-        "is_active": True
-    }
+    try:
+        user_id = get_request_context().user_id
+        if user_id is None:
+            raise AuthenticationError("User not authenticated")
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, username, role, is_active FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if not user:
+            raise AuthenticationError("User not found")
+
+        return {
+            "id": user[0],
+            "email": user[1],
+            "username": user[2],
+            "role": user[3],
+            "is_active": user[4]
+        }
+    except AuthenticationError as e:
+        raise e
+    except Exception as e:
+        logger.error(f"❌ Error getting current user: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get current user: {str(e)}")
 
 # Other essential endpoints
 @app.get("/api/features")
