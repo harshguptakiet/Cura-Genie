@@ -1,0 +1,23 @@
+# Backend Environment Variables
+DATABASE_PATH=./curagenie.db
+UPLOADS_DIR=./uploads
+SECRET_KEY=your-secret-key-here-change-in-production
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# API Configuration
+API_VERSION=2.0.0
+ENVIRONMENT=development
+
+# Optional Features
+ENABLE_ENHANCED_MRI=false
+ENABLE_ML=false
+
+# OpenAI Configuration (optional)
+OPENAI_API_KEY=your-openai-key-here
+
+# Supabase Configuration (optional)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+

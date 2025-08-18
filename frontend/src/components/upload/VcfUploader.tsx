@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { uploadVcf } from "@/lib/uploadVcf";
+import { isSupabaseEnabled } from "@/lib/supabaseClient";
 
 export default function VcfUploader() {
   const [status, setStatus] = useState<string>("");
@@ -14,6 +15,14 @@ export default function VcfUploader() {
     try {
       setUploading(true);
       setStatus("Uploading...");
+
+      if (!isSupabaseEnabled) {
+        // Fallback to local upload if Supabase not configured
+        setStatus("Supabase not configured - using local upload");
+        // You can implement local file handling here
+        return;
+      }
+
       const { path } = await uploadVcf(file);
       setStatus(`Uploaded to: ${path}`);
     } catch (err: any) {
@@ -32,6 +41,11 @@ export default function VcfUploader() {
         disabled={uploading}
       />
       <p>{status}</p>
+      {!isSupabaseEnabled && (
+        <p className="text-yellow-600 text-sm">
+          ⚠️ Supabase not configured - file upload features are limited
+        </p>
+      )}
     </div>
   );
 }
