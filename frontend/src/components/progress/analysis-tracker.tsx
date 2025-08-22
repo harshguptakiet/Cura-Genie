@@ -17,22 +17,7 @@ import {
   Activity,
   Target
 } from 'lucide-react';
-
-interface AnalysisStep {
-  id: string;
-  name: string;
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'error';
-  icon: React.ComponentType<any>;
-  estimatedTime: string;
-  details?: string;
-}
-
-interface AnalysisTrackerProps {
-  uploadId?: string;
-  isProcessing: boolean;
-  onComplete?: () => void;
-}
+import { AnalysisTrackerProps, AnalysisStep } from '@/types/ui-types';
 
 export function AnalysisTracker({ uploadId, isProcessing, onComplete }: AnalysisTrackerProps) {
   const [currentStep, setCurrentStep] = useState(0);

@@ -16,23 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Search, Eye, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-
-interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  email: string;
-  lastVisit: string;
-  riskLevel: 'low' | 'moderate' | 'high';
-  analysisStatus: 'completed' | 'in-progress' | 'pending';
-  highRiskConditions: number;
-  totalConditions: number;
-}
-
-interface PatientListProps {
-  doctorId?: string;
-}
+import { PatientListProps, Patient } from '@/types/ui-types';
 
 // Use environment variable for API base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
@@ -51,17 +35,17 @@ const fetchPatients = async (doctorId?: string): Promise<Patient[]> => {
   const data = await response.json();
   
   // Transform backend data to frontend format if needed
-  return data.map((patient: any) => ({
-    id: patient.id,
-    name: patient.name || 'Unknown Patient',
-    age: patient.age || 0,
-    gender: patient.gender || 'Unknown',
-    email: patient.email || '',
-    lastVisit: patient.last_visit || new Date().toISOString(),
-    riskLevel: patient.risk_level || 'low',
-    analysisStatus: patient.analysis_status || 'pending',
-    highRiskConditions: patient.high_risk_conditions || 0,
-    totalConditions: patient.total_conditions || 0
+  return data.map((patient: Record<string, unknown>) => ({
+    id: patient.id as string,
+    name: (patient.name as string) || 'Unknown Patient',
+    age: (patient.age as number) || 0,
+    gender: (patient.gender as string) || 'Unknown',
+    email: (patient.email as string) || '',
+    lastVisit: (patient.last_visit as string) || new Date().toISOString(),
+    riskLevel: (patient.risk_level as string) || 'low',
+    analysisStatus: (patient.analysis_status as string) || 'pending',
+    highRiskConditions: (patient.high_risk_conditions as number) || 0,
+    totalConditions: (patient.total_conditions as number) || 0
   }));
 };
 

@@ -10,17 +10,7 @@ import { Progress } from './progress';
 import { Alert, AlertDescription } from './alert';
 import { Upload, CheckCircle, AlertCircle, FileText, Stethoscope } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface ClinicalFileUploadProps {
-  onUploadSuccess?: (data: any) => void;
-  assessmentType: 'general' | 'diabetes' | 'alzheimer' | 'brain-tumor';
-}
-
-interface UploadResponse {
-  success: boolean;
-  message: string;
-  fileId?: string;
-}
+import { ClinicalFileUploadProps, UploadResponse, UploadError } from '@/types/ui-types';
 
 // API upload function for clinical files
 const uploadClinicalFile = async (
@@ -177,7 +167,7 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
       
       onUploadSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: UploadError) => {
       console.error('Clinical file upload error:', error);
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);

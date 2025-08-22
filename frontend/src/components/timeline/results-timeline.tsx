@@ -6,25 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Upload, BarChart3, FileText, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
-
-interface TimelineEvent {
-  id: string;
-  type: 'upload' | 'analysis' | 'report' | 'consultation' | 'alert' | 'milestone';
-  title: string;
-  description: string;
-  timestamp: string;
-  status: 'completed' | 'in-progress' | 'pending' | 'failed';
-  metadata?: {
-    fileType?: string;
-    analysisType?: string;
-    severity?: 'low' | 'medium' | 'high';
-    [key: string]: any;
-  };
-}
-
-interface ResultsTimelineProps {
-  userId: string;
-}
+import { ResultsTimelineProps, TimelineEvent } from '@/types/ui-types';
 
 // API function to fetch real timeline events
 const fetchTimelineEvents = async (userId: string): Promise<TimelineEvent[]> => {
@@ -35,14 +17,14 @@ const fetchTimelineEvents = async (userId: string): Promise<TimelineEvent[]> => 
   const data = await response.json();
   
   // Transform backend data to frontend format
-  return data.map((item: any) => ({
-    id: item.id.toString(),
-    type: item.event_type || 'milestone',
-    title: item.title,
-    description: item.description,
-    timestamp: item.timestamp,
-    status: item.status || 'completed',
-    metadata: item.metadata || {}
+  return data.map((item: Record<string, unknown>) => ({
+    id: item.id?.toString() || '',
+    type: (item.event_type as string) || 'milestone',
+    title: (item.title as string) || '',
+    description: (item.description as string) || '',
+    timestamp: (item.timestamp as string) || '',
+    status: (item.status as string) || 'completed',
+    metadata: (item.metadata as Record<string, string | number | boolean>) || {}
   }));
 };
 
