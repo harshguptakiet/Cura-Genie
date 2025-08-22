@@ -174,7 +174,7 @@ const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
           </div>
         </div>
         <div ref={containerRef} className="w-full h-[500px] bg-white rounded-lg border-2 border-gray-200 shadow-inner"></div>
-        
+
         {/* Summary statistics */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -326,11 +326,11 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
     .attr('stroke-width', d => diseaseSnps.includes(d.variant_id) ? 2 : 0)
     .style('cursor', 'pointer')
     .style('opacity', 0.8)
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function (event, d) {
       d3.select(this).style('opacity', 1).attr('r', sizeScale(d.quality) + 2);
       tooltip.style('opacity', 1)
         .html(`
-          <strong>${d.variant_id || 'Unknown'}</strong><br/>
+          <strong>${d.variant_id || 'Variant ID Unavailable'}</strong><br/>
           Chr: ${d.chromosome}<br/>
           Position: ${d.position.toLocaleString()}<br/>
           Change: ${d.reference} → ${d.alternative}<br/>
@@ -341,7 +341,7 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
         .style('left', (event.pageX + 10) + 'px')
         .style('top', (event.pageY - 10) + 'px');
     })
-    .on('mouseout', function(event, d) {
+    .on('mouseout', function (event, d) {
       d3.select(this).style('opacity', 0.8).attr('r', sizeScale(d.quality));
       tooltip.style('opacity', 0);
     });
