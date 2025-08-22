@@ -45,11 +45,9 @@ interface AnalyzedImage {
   preview?: string;
 }
 
+import { SimpleUploadInterfaceProps, MRIAnalysisResult } from '@/types/medical';
+
 // Simplified upload interface component
-interface SimpleUploadInterfaceProps {
-  userId: string;
-  onCompleteAnalysis: (uploadResult: any, file: File) => void;
-}
 
 function SimpleUploadInterface({ userId, onCompleteAnalysis }: SimpleUploadInterfaceProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -227,7 +225,7 @@ export function CompleteMRIAnalysis({ userId }: CompleteMRIAnalysisProps) {
   const [analyzedImages, setAnalyzedImages] = useState<AnalyzedImage[]>([]);
   const [selectedImage, setSelectedImage] = useState<AnalyzedImage | null>(null);
 
-  const handleCompleteAnalysis = (uploadResult: any, file: File) => {
+  const handleCompleteAnalysis = (uploadResult: MRIAnalysisResult, file: File) => {
     // Create preview URL for the file
     const preview = URL.createObjectURL(file);
     

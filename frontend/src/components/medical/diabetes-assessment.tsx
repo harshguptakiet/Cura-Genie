@@ -9,27 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Activity, AlertTriangle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
-
-interface DiabetesInputs {
-  hba1c: number | null;
-  fastingGlucose: number | null;
-  bmi: number | null;
-  age: number | null;
-}
-
-interface DiabetesResult {
-  overallRisk: number;
-  riskLevel: 'low' | 'moderate' | 'high' | 'very-high';
-  geneticComponent: number;
-  clinicalComponent: number;
-  recommendations: string[];
-  warningFlags: string[];
-}
-
-interface DiabetesAssessmentProps {
-  userId?: string;
-  geneticData?: any;
-}
+import { DiabetesInputs, DiabetesResult, DiabetesAssessmentProps, GeneticScore } from '@/types/medical';
 
 const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, geneticData }) => {
   const { user } = useAuthStore();

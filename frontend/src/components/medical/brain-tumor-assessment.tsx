@@ -13,31 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Brain, Calculator, AlertTriangle, CheckCircle, Info, TrendingUp, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface BrainTumorData {
-  age: number;
-  sex: 'male' | 'female' | '';
-  family_history: 'none' | 'brain_tumor' | 'neurofibromatosis' | 'li_fraumeni' | 'tuberous_sclerosis' | 'multiple';
-  radiation_exposure: 'none' | 'medical_low' | 'medical_high' | 'occupational' | 'atomic';
-  immune_status: 'normal' | 'compromised_mild' | 'compromised_severe';
-  hormone_factors: {
-    hormone_therapy: boolean;
-    reproductive_history: 'none' | 'nulliparous' | 'multiparous';
-  };
-  symptoms: {
-    headaches: boolean;
-    seizures: boolean;
-    vision_changes: boolean;
-    hearing_loss: boolean;
-    cognitive_changes: boolean;
-    motor_weakness: boolean;
-  };
-  environmental_factors: {
-    cell_phone_use: 'minimal' | 'moderate' | 'heavy' | 'extreme';
-    chemical_exposure: boolean;
-    viral_infections: boolean;
-  };
-}
+import { BrainTumorData, GeneticScore } from '@/types/medical';
 
 interface BrainTumorResult {
   clinical_risk: number;
@@ -102,7 +78,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
         if (response.ok) {
           const data = await response.json();
-          const hasBrainTumorData = data.some((score: any) => 
+          const hasBrainTumorData = data.some((score: GeneticScore) => 
             score.disease_name?.toLowerCase().includes('brain') ||
             score.disease_name?.toLowerCase().includes('glioma') ||
             score.disease_name?.toLowerCase().includes('meningioma') ||
@@ -118,7 +94,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
     checkGenomicData();
   }, [userId]);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
@@ -210,7 +186,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
           const geneticResponse = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
           if (geneticResponse.ok) {
             const geneticData = await geneticResponse.json();
-            const brainTumorScore = geneticData.find((score: any) => 
+            const brainTumorScore = geneticData.find((score: GeneticScore) => 
               score.disease_name?.toLowerCase().includes('brain') ||
               score.disease_name?.toLowerCase().includes('glioma') ||
               score.disease_name?.toLowerCase().includes('meningioma')
