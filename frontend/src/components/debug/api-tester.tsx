@@ -12,24 +12,24 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export function ApiTester() {
-  const [testResults, setTestResults] = useState<{[key: string]: 'loading' | 'success' | 'error' | 'idle'}>({});
-  const [responses, setResponses] = useState<{[key: string]: any}>({});
+  const [testResults, setTestResults] = useState<{ [key: string]: 'loading' | 'success' | 'error' | 'idle' }>({});
+  const [responses, setResponses] = useState<Record<string, APIResponse>>({});
   const [userId, setUserId] = useState('1');
 
   const testEndpoint = async (name: string, url: string, options?: RequestInit) => {
     setTestResults(prev => ({ ...prev, [name]: 'loading' }));
-    
+
     try {
       const response = await fetch(url, options);
       const data = await response.text();
-      
+
       try {
         const jsonData = JSON.parse(data);
         setResponses(prev => ({ ...prev, [name]: { status: response.status, data: jsonData } }));
       } catch {
         setResponses(prev => ({ ...prev, [name]: { status: response.status, data: data } }));
       }
-      
+
       if (response.ok) {
         setTestResults(prev => ({ ...prev, [name]: 'success' }));
       } else {
