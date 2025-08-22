@@ -10,7 +10,12 @@ import { CheckCircle, XCircle, Clock, RefreshCw, AlertTriangle } from 'lucide-re
 interface HealthCheckResult {
   status: 'checking' | 'success' | 'error'
   message: string
-  details?: any
+  details?: {
+    status?: number;
+    headers?: Record<string, string>;
+    data?: string;
+    error?: string;
+  }
   timestamp: string
 }
 
@@ -20,7 +25,7 @@ export function BackendHealthCheck() {
   const [results, setResults] = useState<Record<string, HealthCheckResult>>({})
   const [isChecking, setIsChecking] = useState(false)
 
-  const updateResult = (endpoint: string, status: HealthCheckResult['status'], message: string, details?: any) => {
+  const updateResult = (endpoint: string, status: HealthCheckResult['status'], message: string, details?: HealthCheckResult['details']) => {
     setResults(prev => ({
       ...prev,
       [endpoint]: {
@@ -32,7 +37,7 @@ export function BackendHealthCheck() {
     }))
   }
 
-  const checkEndpoint = async (endpoint: string, method: string = 'GET', body?: any) => {
+  const checkEndpoint = async (endpoint: string, method: string = 'GET', body?: Record<string, unknown>) => {
     updateResult(endpoint, 'checking', 'Testing...')
     
     try {

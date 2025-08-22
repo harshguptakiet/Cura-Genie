@@ -7,14 +7,26 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/store/auth-store';
 import { Info, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
+// Define proper interfaces for type safety
+interface HealthCheckResult {
+  status: 'success' | 'error' | 'unknown' | 'no-data';
+  data: unknown;
+}
+
+interface DebugResults {
+  auth: HealthCheckResult;
+  uploadEndpoint: HealthCheckResult;
+  prsEndpoint: HealthCheckResult;
+}
+
 export function UploadDebug() {
   const { user, token, isAuthenticated } = useAuthStore();
   const [isChecking, setIsChecking] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<DebugResults | null>(null);
 
   const checkAPIs = async () => {
     setIsChecking(true);
-    const results: any = {
+    const results: DebugResults = {
       auth: { status: 'unknown', data: null },
       uploadEndpoint: { status: 'unknown', data: null },
       prsEndpoint: { status: 'unknown', data: null }

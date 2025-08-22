@@ -42,8 +42,9 @@ export default function DebugAuthPage() {
       await login(email, password)
       setStatus('✅ Login successful!')
       setTimeout(() => router.push('/dashboard'), 1000)
-    } catch (err: any) {
-      setError(`❌ Login failed: ${err.message}`)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`❌ Login failed: ${errorMessage}`)
       setStatus('')
     }
   }
@@ -61,8 +62,9 @@ export default function DebugAuthPage() {
       })
       setStatus('✅ Registration successful!')
       setTimeout(() => router.push('/dashboard'), 1000)
-    } catch (err: any) {
-      setError(`❌ Registration failed: ${err.message}`)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`❌ Registration failed: ${errorMessage}`)
       setStatus('')
     }
   }
