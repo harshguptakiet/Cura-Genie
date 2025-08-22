@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Heart, 
-  Info, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Heart,
+  Info,
   AlertTriangle,
   CheckCircle,
   Users,
@@ -17,12 +17,17 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+// Updated interface to match the main PRS component
 interface PrsScore {
   id: string;
-  disease: string;
+  condition: string;
   score: number;
   percentile: number;
-  risk_level: 'low' | 'moderate' | 'high';
+  riskLevel: 'low' | 'moderate' | 'high';
+  description?: string;
+  calculatedAt?: string;
+  variantsUsed?: number;
+  confidence?: number;
 }
 
 interface PatientFriendlyPrsDisplayProps {
@@ -63,7 +68,7 @@ const getRiskExplanation = (disease: string, score: number, percentile: number, 
       action: 'Talk to your doctor about enhanced screening and prevention strategies.'
     }
   };
-  
+
   return explanations[riskLevel as keyof typeof explanations] || explanations.moderate;
 };
 
@@ -77,7 +82,7 @@ const ScoreVisualization = ({ score, percentile }: { score: number; percentile: 
         </div>
         <Progress value={score * 100} className="h-2" />
       </div>
-      
+
       <div className="flex items-center justify-center bg-blue-50 rounded-lg p-3">
         <Users className="h-4 w-4 text-blue-600 mr-2" />
         <span className="text-sm text-blue-800">
@@ -128,16 +133,16 @@ export function PatientFriendlyPrsDisplay({ scores, isLoading }: PatientFriendly
         </CardHeader>
         <CardContent>
           <p className="text-blue-800 mb-4">
-            We analyzed {scores.length} health conditions based on your genetic data. 
+            We analyzed {scores.length} health conditions based on your genetic data.
             Here's what your results mean in simple terms:
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {['low', 'moderate', 'high'].map(level => {
-              const count = scores.filter(s => s.risk_level === level).length;
+              const count = scores.filter(s => s.riskLevel === level).length;
               const config = getRiskExplanation('', 0, 0, level);
               const IconComponent = config.icon;
-              
+
               return (
                 <div key={level} className={`${config.bgColor} ${config.borderColor} border rounded-lg p-3`}>
                   <div className="flex items-center gap-2 mb-1">
@@ -157,10 +162,10 @@ export function PatientFriendlyPrsDisplay({ scores, isLoading }: PatientFriendly
       <div className="space-y-4">
         {scores.map((scoreData, index) => {
           const config = getRiskExplanation(
-            scoreData.disease, 
-            scoreData.score, 
-            scoreData.percentile, 
-            scoreData.risk_level
+            scoreData.condition,
+            scoreData.score,
+            scoreData.percentile,
+            scoreData.riskLevel
           );
           const IconComponent = config.icon;
 
@@ -173,9 +178,9 @@ export function PatientFriendlyPrsDisplay({ scores, isLoading }: PatientFriendly
                       <IconComponent className={`h-5 w-5 ${config.color}`} />
                     </div>
                     <div>
-                      <CardTitle className="text-xl">{scoreData.disease}</CardTitle>
-                      <Badge 
-                        variant="outline" 
+                      <CardTitle className="text-xl">{scoreData.condition}</CardTitle>
+                      <Badge
+                        variant="outline"
                         className={`${config.color} ${config.borderColor} ${config.bgColor} mt-1`}
                       >
                         {config.title}
@@ -184,7 +189,7 @@ export function PatientFriendlyPrsDisplay({ scores, isLoading }: PatientFriendly
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
                 {/* Simple Explanation */}
                 <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-4`}>
@@ -203,7 +208,7 @@ export function PatientFriendlyPrsDisplay({ scores, isLoading }: PatientFriendly
                     What you can do:
                   </h4>
                   <p className="text-gray-700 mb-3">{config.action}</p>
-                  
+
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm">
                       <Info className="h-3 w-3 mr-1" />
