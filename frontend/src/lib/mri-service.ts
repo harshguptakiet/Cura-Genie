@@ -4,24 +4,26 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
+export interface MRIAnalysisResults {
+  detected_regions: Array<{
+    id: string;
+    type: string;
+    confidence: number;
+    coordinates: { x: number; y: number; width: number; height: number };
+    location: string;
+    risk_level: string;
+  }>;
+  overall_confidence: number;
+  processing_time: number;
+  annotated_image?: string;
+  visualization_type?: string;
+}
+
 export interface MRIUploadResponse {
   success: boolean;
   image_id: string;
   uploaded_to_db: boolean;
-  analysis: {
-    detected_regions: Array<{
-      id: string;
-      type: string;
-      confidence: number;
-      coordinates: { x: number; y: number; width: number; height: number };
-      location: string;
-      risk_level: string;
-    }>;
-    overall_confidence: number;
-    processing_time: number;
-    annotated_image?: string;
-    visualization_type?: string;
-  };
+  analysis: MRIAnalysisResults;
   database_info: {
     stored: boolean;
     record_id: string;
@@ -38,7 +40,7 @@ export interface MRIImageMetadata {
   file_size: number;
   upload_date: string;
   analysis_status: 'pending' | 'processing' | 'completed' | 'error';
-  analysis_results?: any;
+  analysis_results?: MRIAnalysisResults;
   image_url?: string;
   thumbnail_url?: string;
 }
@@ -47,8 +49,8 @@ export interface MRIImageMetadata {
  * Upload MRI image with progress tracking
  */
 export const uploadMRIImage = async (
-  file: File, 
-  userId: string, 
+  file: File,
+  userId: string,
   onProgress?: (progress: number) => void
 ): Promise<MRIUploadResponse> => {
   return new Promise((resolve, reject) => {
@@ -59,7 +61,7 @@ export const uploadMRIImage = async (
     formData.append('store_in_db', 'true');
 
     const xhr = new XMLHttpRequest();
-    
+
     // Track upload progress
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable && onProgress) {
@@ -67,7 +69,7 @@ export const uploadMRIImage = async (
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -121,11 +123,11 @@ export const uploadMRIImage = async (
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
       reject(new Error('Network error during upload'));
     });
-    
+
     xhr.open('POST', `${API_BASE_URL}/api/mri/upload-and-analyze`);
     xhr.send(formData);
   });
@@ -160,7 +162,7 @@ export const getUserMRIImages = async (userId: string): Promise<MRIImageMetadata
 /**
  * Get specific MRI analysis results
  */
-export const getMRIAnalysis = async (imageId: string): Promise<any> => {
+export const getMRIAnalysis = async (imageId: string): Promise<MRIAnalysisResults> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/mri/analysis/${imageId}`, {
       method: 'GET',
