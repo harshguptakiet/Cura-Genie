@@ -29,14 +29,14 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
     formData.append('user_id', userId);
 
     const xhr = new XMLHttpRequest();
-    
+
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const progress = Math.round((event.loaded / event.total) * 100);
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -74,22 +74,22 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
         reject(new Error(errorMessage));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
       console.error('Upload network error');
       reject(new Error('Upload failed due to network error'));
     });
-    
+
     // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
     // Use the unauthenticated test endpoint for uploads
     xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
-    
+
     // If you switch to the authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }
-    
+
     xhr.send(formData);
   });
 };
@@ -101,7 +101,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const userId = user?.id?.toString() || "1";
   const authToken = token || "";
 
@@ -109,33 +109,29 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     mutationFn: (file: File) => uploadGenomicFile(file, userId, authToken, setUploadProgress),
     onSuccess: (data) => {
       toast.success('File uploaded successfully!');
-      
+
       // Reset all upload-related state completely
       setSelectedFile(null);
       setUploadProgress(0);
-      
+
       // Clear file input element
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
         fileInputRef.current.files = null;
       }
-      
-      // Reset the mutation state to allow new uploads
-      setTimeout(() => {
-        uploadMutation.reset();
-      }, 100);
-      
+
+      // Reset the mutation state immediately
+      uploadMutation.reset();
+
       onUploadSuccess?.(data);
     },
     onError: (error: any) => {
       console.error('Upload error:', error);
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);
-      
-      // Reset mutation state on error too
-      setTimeout(() => {
-        uploadMutation.reset();
-      }, 1000);
+
+      // Reset mutation state immediately on error
+      uploadMutation.reset();
     },
   });
 
@@ -145,12 +141,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
       // Validate file type
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -167,12 +163,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     if (file) {
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -186,16 +182,16 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     setSelectedFile(null);
     setUploadProgress(0);
     setShowSuccessMessage(false);
-    
+
     // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.files = null;
     }
-    
+
     // Reset mutation state
     uploadMutation.reset();
-    
+
     toast.info('Ready for new file upload');
   };
 

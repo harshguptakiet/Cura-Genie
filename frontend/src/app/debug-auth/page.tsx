@@ -13,14 +13,14 @@ export default function DebugAuthPage() {
   const [password, setPassword] = useState('password')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
-  
+
   const { login, register, isLoading, user, token, isAuthenticated } = useAuthStore()
   const router = useRouter()
 
   const testBackendHealth = async () => {
     setStatus('Testing backend health...')
     setError('')
-    
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/health`)
       if (response.ok) {
@@ -37,11 +37,12 @@ export default function DebugAuthPage() {
   const testLogin = async () => {
     setStatus('Testing login...')
     setError('')
-    
+
     try {
       await login(email, password)
       setStatus('✅ Login successful!')
-      setTimeout(() => router.push('/dashboard'), 1000)
+      // Navigate immediately after successful login
+      router.push('/dashboard')
     } catch (err: any) {
       setError(`❌ Login failed: ${err.message}`)
       setStatus('')
@@ -51,7 +52,7 @@ export default function DebugAuthPage() {
   const testRegister = async () => {
     setStatus('Testing registration...')
     setError('')
-    
+
     try {
       await register({
         email: email,
@@ -60,7 +61,8 @@ export default function DebugAuthPage() {
         role: 'patient'
       })
       setStatus('✅ Registration successful!')
-      setTimeout(() => router.push('/dashboard'), 1000)
+      // Navigate immediately after successful registration
+      router.push('/dashboard')
     } catch (err: any) {
       setError(`❌ Registration failed: ${err.message}`)
       setStatus('')
@@ -69,7 +71,7 @@ export default function DebugAuthPage() {
 
   const manualLogin = () => {
     setStatus('Creating manual demo user...')
-    
+
     // Manually set authentication state
     useAuthStore.setState({
       user: {
@@ -85,9 +87,10 @@ export default function DebugAuthPage() {
       isAuthenticated: true,
       isLoading: false
     })
-    
+
     setStatus('✅ Manual login successful!')
-    setTimeout(() => router.push('/dashboard'), 1000)
+    // Navigate immediately after manual login
+    router.push('/dashboard')
   }
 
   return (
@@ -99,7 +102,7 @@ export default function DebugAuthPage() {
             Debug authentication issues and test different scenarios
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Current Status */}
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -156,8 +159,8 @@ export default function DebugAuthPage() {
 
           {/* Quick Access */}
           <div className="pt-4 border-t">
-            <Button 
-              onClick={() => router.push('/dashboard')} 
+            <Button
+              onClick={() => router.push('/dashboard')}
               className="w-full"
               variant="outline"
             >

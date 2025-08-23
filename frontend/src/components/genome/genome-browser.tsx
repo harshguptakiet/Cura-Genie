@@ -32,20 +32,20 @@ const fetchGenomicVariants = async (userId: string): Promise<Variant[]> => {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
   const url = `${baseUrl}/api/genomic/variants/${userId}`;
   console.log('🌐 API URL:', url);
-  
+
   try {
     const response = await fetch(url);
     console.log('📡 API Response status:', response.status);
-    
+
     if (!response.ok) {
       console.error('❌ API response not ok:', response.status, response.statusText);
       throw new Error(`Failed to fetch genomic variants: ${response.status}`);
     }
-    
+
     const data = await response.json();
     console.log('✅ API Response data:', data);
     console.log('📊 Total variants received:', data.length);
-    
+
     return data;
   } catch (error) {
     console.error('🚫 Network error fetching genomic variants:', error);
@@ -91,7 +91,10 @@ const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
 
   const animateVisualization = useCallback(() => {
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 3000);
+    const animationTimer = setTimeout(() => setIsAnimating(false), 3000);
+
+    // Clean up timer on unmount
+    return () => clearTimeout(animationTimer);
   }, []);
 
   useEffect(() => {
@@ -187,7 +190,7 @@ const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
           </div>
         </div>
         <div ref={containerRef} className="w-full h-[500px] bg-white rounded-lg border-2 border-gray-200 shadow-inner"></div>
-        
+
         {/* Summary statistics */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -339,7 +342,7 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
     .attr('stroke-width', d => diseaseSnps.includes(d.variant_id) ? 2 : 0)
     .style('cursor', 'pointer')
     .style('opacity', 0.8)
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function (event, d) {
       d3.select(this).style('opacity', 1).attr('r', sizeScale(d.quality) + 2);
       tooltip.style('opacity', 1)
         .html(`
@@ -354,7 +357,7 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
         .style('left', (event.pageX + 10) + 'px')
         .style('top', (event.pageY - 10) + 'px');
     })
-    .on('mouseout', function(event, d) {
+    .on('mouseout', function (event, d) {
       d3.select(this).style('opacity', 0.8).attr('r', sizeScale(d.quality));
       tooltip.style('opacity', 0);
     });
