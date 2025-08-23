@@ -29,6 +29,7 @@ PyJWT==2.8.0
 
 # File Processing - Lightweight
 Pillow==10.1.0
+biopython==1.84
 
 # Production server
 gunicorn==21.2.0
