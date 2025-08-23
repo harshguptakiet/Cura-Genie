@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  CheckCircle, 
-  Clock, 
-  Upload, 
-  Brain, 
-  BarChart3, 
+import {
+  CheckCircle,
+  Clock,
+  Upload,
+  Brain,
+  BarChart3,
   FileText,
   AlertCircle,
   Zap,
@@ -88,48 +88,48 @@ export function AnalysisTracker({ uploadId, isProcessing, onComplete }: Analysis
   useEffect(() => {
     if (!isProcessing) return;
 
-    const intervals: NodeJS.Timeout[] = [];
+    const timers: NodeJS.Timeout[] = [];
 
     // Step 2: Data Processing (2 seconds)
-    intervals.push(setTimeout(() => {
-      setSteps(prev => prev.map(step => 
-        step.id === 'parsing' 
+    timers.push(setTimeout(() => {
+      setSteps(prev => prev.map(step =>
+        step.id === 'parsing'
           ? { ...step, status: 'completed' as const }
           : step.id === 'analysis'
-          ? { ...step, status: 'in-progress' as const }
-          : step
+            ? { ...step, status: 'in-progress' as const }
+            : step
       ));
       setCurrentStep(2);
     }, 2000));
 
     // Step 3: Risk Analysis (5 seconds)
-    intervals.push(setTimeout(() => {
-      setSteps(prev => prev.map(step => 
-        step.id === 'analysis' 
+    timers.push(setTimeout(() => {
+      setSteps(prev => prev.map(step =>
+        step.id === 'analysis'
           ? { ...step, status: 'completed' as const }
           : step.id === 'recommendations'
-          ? { ...step, status: 'in-progress' as const }
-          : step
+            ? { ...step, status: 'in-progress' as const }
+            : step
       ));
       setCurrentStep(3);
     }, 5000));
 
     // Step 4: Generating Insights (8 seconds)
-    intervals.push(setTimeout(() => {
-      setSteps(prev => prev.map(step => 
-        step.id === 'recommendations' 
+    timers.push(setTimeout(() => {
+      setSteps(prev => prev.map(step =>
+        step.id === 'recommendations'
           ? { ...step, status: 'completed' as const }
           : step.id === 'reports'
-          ? { ...step, status: 'in-progress' as const }
-          : step
+            ? { ...step, status: 'in-progress' as const }
+            : step
       ));
       setCurrentStep(4);
     }, 8000));
 
     // Step 5: Complete (10 seconds)
-    intervals.push(setTimeout(() => {
-      setSteps(prev => prev.map(step => 
-        step.id === 'reports' 
+    timers.push(setTimeout(() => {
+      setSteps(prev => prev.map(step =>
+        step.id === 'reports'
           ? { ...step, status: 'completed' as const }
           : step
       ));
@@ -137,8 +137,9 @@ export function AnalysisTracker({ uploadId, isProcessing, onComplete }: Analysis
       onComplete?.();
     }, 10000));
 
+    // Clean up all timers on unmount or when isProcessing changes
     return () => {
-      intervals.forEach(clearTimeout);
+      timers.forEach(timer => clearTimeout(timer));
     };
   }, [isProcessing, onComplete]);
 
@@ -189,54 +190,51 @@ export function AnalysisTracker({ uploadId, isProcessing, onComplete }: Analysis
           </p>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {steps.map((step, index) => {
           const IconComponent = step.icon;
           const isActive = step.status === 'in-progress';
-          
+
           return (
-            <div 
+            <div
               key={step.id}
-              className={`p-4 rounded-lg border transition-all duration-300 ${
-                isActive ? 'ring-2 ring-blue-200 shadow-sm' : ''
-              } ${getStatusColor(step.status)}`}
+              className={`p-4 rounded-lg border transition-all duration-300 ${isActive ? 'ring-2 ring-blue-200 shadow-sm' : ''
+                } ${getStatusColor(step.status)}`}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className={`p-2 rounded-full ${
-                    step.status === 'completed' ? 'bg-green-100' :
-                    step.status === 'in-progress' ? 'bg-blue-100' :
-                    step.status === 'error' ? 'bg-red-100' :
-                    'bg-gray-100'
-                  }`}>
-                    <IconComponent className={`h-4 w-4 ${
-                      step.status === 'completed' ? 'text-green-600' :
-                      step.status === 'in-progress' ? 'text-blue-600' :
-                      step.status === 'error' ? 'text-red-600' :
-                      'text-gray-400'
-                    }`} />
+                  <div className={`p-2 rounded-full ${step.status === 'completed' ? 'bg-green-100' :
+                      step.status === 'in-progress' ? 'bg-blue-100' :
+                        step.status === 'error' ? 'bg-red-100' :
+                          'bg-gray-100'
+                    }`}>
+                    <IconComponent className={`h-4 w-4 ${step.status === 'completed' ? 'text-green-600' :
+                        step.status === 'in-progress' ? 'text-blue-600' :
+                          step.status === 'error' ? 'text-red-600' :
+                            'text-gray-400'
+                      }`} />
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="font-medium">{step.name}</h4>
                     <div className="flex items-center gap-2">
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={`text-xs ${getStatusColor(step.status)}`}
                       >
-                        {step.status === 'in-progress' ? 'Processing...' : 
-                         step.status === 'completed' ? 'Complete' :
-                         step.status === 'error' ? 'Error' : 'Pending'}
+                        {step.status === 'in-progress' ? 'Processing...' :
+                          step.status === 'completed' ? 'Complete' :
+                            step.status === 'error' ? 'Error' : 'Pending'}
                       </Badge>
                       {getStatusIcon(step.status)}
                     </div>
                   </div>
-                  
+
                   <p className="text-sm text-gray-600 mb-2">{step.description}</p>
-                  
+
                   {step.status === 'in-progress' && (
                     <div className="bg-white/50 rounded p-2 text-xs">
                       <div className="flex items-center gap-2">
@@ -249,7 +247,7 @@ export function AnalysisTracker({ uploadId, isProcessing, onComplete }: Analysis
                       </div>
                     </div>
                   )}
-                  
+
                   {step.status === 'completed' && step.details && (
                     <div className="bg-white/50 rounded p-2 text-xs text-green-700">
                       ✓ {step.details}
@@ -276,7 +274,7 @@ export function AnalysisTracker({ uploadId, isProcessing, onComplete }: Analysis
                 {isProcessing ? 'Analysis in Progress' : 'Analysis Complete!'}
               </h4>
               <p className="text-sm text-blue-800">
-                {isProcessing 
+                {isProcessing
                   ? 'Please keep this page open while we process your genetic data. You can navigate to other sections if needed.'
                   : 'Your genomic analysis is complete! You can now view your results in the dashboard.'
                 }
