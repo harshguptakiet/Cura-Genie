@@ -35,22 +35,7 @@ const SimpleSlider = ({ value, onValueChange, min, max, step, className = '' }: 
   );
 };
 
-interface EnhancedDNAVisualizationProps {
-  height?: number;
-  width?: number;
-  showControls?: boolean;
-  genomicData?: any[];
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  color: string;
-}
+import { EnhancedDNAVisualizationProps, Particle, DNABase, GenomicDataArray } from '@/types/ui-types';
 
 const EnhancedDNAVisualization: React.FC<EnhancedDNAVisualizationProps> = ({ 
   height = 500, 
@@ -85,7 +70,7 @@ const EnhancedDNAVisualization: React.FC<EnhancedDNAVisualizationProps> = ({
 
   // Generate realistic DNA sequence or use genomic data
   const generateDNASequence = (length: number) => {
-    if (genomicData.length > 0) {
+    if (genomicData && genomicData.length > 0) {
       // Use real genomic data if available
       return genomicData.slice(0, length).map((variant, i) => ({
         x: 0,

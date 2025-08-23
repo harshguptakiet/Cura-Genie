@@ -10,16 +10,7 @@ import { Progress } from './progress';
 import { Alert, AlertDescription } from './alert';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface FileUploadProps {
-  onUploadSuccess?: (data: any) => void;
-}
-
-interface UploadResponse {
-  success: boolean;
-  message: string;
-  fileId?: string;
-}
+import { FileUploadProps, UploadResponse, UploadError } from '@/types/ui-types';
 
 // Real API upload function using correct backend endpoint
 const uploadGenomicFile = async (file: File, userId: string, token: string, onProgress: (progress: number) => void): Promise<UploadResponse> => {
@@ -125,7 +116,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
 
       onUploadSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: UploadError) => {
       console.error('Upload error:', error);
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);
