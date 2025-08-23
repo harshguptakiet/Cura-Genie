@@ -20,12 +20,33 @@ from pydantic import BaseModel
 import sqlite3
 from pathlib import Path
 
-# Import our real genomic processing utilities
-from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator, GenomicQualityController
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Import our real genomic processing utilities
+try:
+    from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator, GenomicQualityController
+    GENOMIC_UTILS_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Genomic utilities not available: {e}")
+    # Create mock classes for fallback
+    class VcfAnalyzer:
+        def parse_vcf(self, content, filename):
+            return {"status": "error", "message": "VCF processing not available"}
+    
+    class FastqAnalyzer:
+        def parse_fastq(self, content, filename):
+            return {"status": "error", "message": "FASTQ processing not available"}
+    
+    class PolygeneticRiskCalculator:
+        def calculate_prs(self, variants, disease):
+            return {"score": 0.0, "confidence": 0.0, "variants_used": 0}
+    
+    class GenomicQualityController:
+        pass
+    
+    GENOMIC_UTILS_AVAILABLE = False
 
 # Create FastAPI app
 app = FastAPI(
@@ -886,6 +907,59 @@ async def real_chatbot(message: dict):
         }
 
 # Authentication endpoints
+@app.post("/api/auth/register", response_model=Token)
+async def register(user_data: UserCreate):
+    """Register a new user"""
+    
+    # Check if email already exists
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
+    existing_user = cursor.fetchone()
+    
+    if existing_user:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+    
+    # Check if username already exists
+    cursor.execute("SELECT * FROM users WHERE username = ?", (user_data.username,))
+    existing_username = cursor.fetchone()
+    
+    if existing_username:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Username already taken"
+        )
+    
+    # Create new user
+    cursor.execute(
+        "INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
+        (user_data.email, user_data.username, user_data.password, user_data.role)
+    )
+    user_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    logger.info(f"✅ New user registered: {user_data.email} (ID: {user_id})")
+    
+    # Create timeline event for registration
+    create_timeline_event(
+        user_id, 'registration', 'Account Created',
+        f'Welcome to CuraGenie! Your account has been created successfully.',
+        {'email': user_data.email, 'role': user_data.role}
+    )
+    
+    return Token(
+        access_token=f"token-{user_id}-{datetime.now().timestamp()}",
+        token_type="bearer",
+        user_id=user_id,
+        role=user_data.role
+    )
+
 @app.post("/api/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
     user = authenticate_user(credentials.email, credentials.password)
