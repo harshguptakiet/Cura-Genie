@@ -24,7 +24,7 @@ interface PrsScoreDisplayProps {
 }
 
 // Use environment variable for API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 // API function to fetch real PRS scores using direct API
 const fetchPrsScores = async (userId: string): Promise<PrsScore[]> => {

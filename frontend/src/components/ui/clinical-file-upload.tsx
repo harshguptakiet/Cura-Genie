@@ -89,7 +89,7 @@ const uploadClinicalFile = async (
     });
     
     // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
     // If you implement clinical upload server route, update the path accordingly:
     xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
     

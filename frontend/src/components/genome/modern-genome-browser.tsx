@@ -26,7 +26,8 @@ interface GenomeBrowserProps {
 // API function to fetch real genomic variants
 const fetchGenomicVariants = async (userId: string): Promise<Variant[]> => {
   console.log('🔍 Fetching genomic variants for user:', userId);
-  const url = `http://127.0.0.1:8000/api/genomic/variants/${userId}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+  const url = `${baseUrl}/api/genomic/variants/${userId}`;
   console.log('🌐 API URL:', url);
   
   const response = await fetch(url);

@@ -33,7 +33,8 @@ interface PrsChartProps {
 const fetchPrsChartData = async (userId: string): Promise<PrsChartData[]> => {
   try {
     console.log(`Fetching PRS chart data for user: ${userId}`);
-    const response = await fetch(`http://127.0.0.1:8000/api/direct/prs/user/${userId}`);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+    const response = await fetch(`${API_BASE_URL}/api/direct/prs/user/${userId}`);
     
     if (!response.ok) {
       if (response.status === 404) {

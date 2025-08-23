@@ -21,7 +21,8 @@ import {
 // Fetch user data to determine report availability
 const fetchUserData = async (userId: string) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/prs/scores/user/${userId}`);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+    const response = await fetch(`${baseUrl}/api/prs/scores/user/${userId}`);
     if (response.ok) {
       const data = await response.json();
       return Array.isArray(data) ? data : [data];

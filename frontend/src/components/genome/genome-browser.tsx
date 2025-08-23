@@ -28,11 +28,29 @@ interface GenomeBrowserProps {
 
 // API function to fetch real genomic variants
 const fetchGenomicVariants = async (userId: string): Promise<Variant[]> => {
-  const response = await fetch(`http://127.0.0.1:8000/api/genomic/variants/${userId}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch genomic variants');
+  console.log('🔍 Fetching genomic variants for user:', userId);
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+  const url = `${baseUrl}/api/genomic/variants/${userId}`;
+  console.log('🌐 API URL:', url);
+  
+  try {
+    const response = await fetch(url);
+    console.log('📡 API Response status:', response.status);
+    
+    if (!response.ok) {
+      console.error('❌ API response not ok:', response.status, response.statusText);
+      throw new Error(`Failed to fetch genomic variants: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ API Response data:', data);
+    console.log('📊 Total variants received:', data.length);
+    
+    return data;
+  } catch (error) {
+    console.error('🚫 Network error fetching genomic variants:', error);
+    throw error;
   }
-  return response.json();
 };
 
 const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
@@ -78,12 +96,7 @@ const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
 
   useEffect(() => {
     if (containerRef.current && filteredVariants.length > 0) {
-      drawModernGenomeBrowser(containerRef.current, filteredVariants, {
-        viewMode,
-        zoomLevel,
-        isAnimating,
-        chromosomes
-      });
+      drawGenomeBrowser(containerRef.current, filteredVariants);
     }
   }, [filteredVariants, viewMode, zoomLevel, isAnimating, chromosomes]);
 

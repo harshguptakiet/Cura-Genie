@@ -28,11 +28,22 @@ interface ResultsTimelineProps {
 
 // API function to fetch real timeline events
 const fetchTimelineEvents = async (userId: string): Promise<TimelineEvent[]> => {
-  const response = await fetch(`http://127.0.0.1:8000/api/timeline/${userId}`);
+  console.log('🔍 Fetching timeline events for user:', userId);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+  const url = `${API_BASE_URL}/api/timeline/${userId}`;
+  console.log('🌐 Timeline API URL:', url);
+  
+  const response = await fetch(url);
+  console.log('📡 Timeline API Response status:', response.status);
+  
   if (!response.ok) {
-    throw new Error('Failed to fetch timeline events');
+    console.error('❌ Timeline API response not ok:', response.status, response.statusText);
+    throw new Error(`Failed to fetch timeline events: ${response.status}`);
   }
+  
   const data = await response.json();
+  console.log('✅ Timeline API Response data:', data);
+  console.log('📊 Total timeline events received:', data.length);
   
   // Transform backend data to frontend format
   return data.map((item: any) => ({

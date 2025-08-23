@@ -311,8 +311,8 @@ class VcfAnalyzer:
                 # Genomic regions analysis
                 "genomic_regions": self._analyze_genomic_regions(parsed_variants),
                 
-                # Sample variants (first 5)
-                "sample_variants": parsed_variants[:5]
+                # All parsed variants for downstream processing
+                "sample_variants": parsed_variants
             }
             
             logger.info(f"VCF analysis complete: {len(variant_lines)} variants, "

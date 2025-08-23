@@ -1,11 +1,14 @@
 from typing import List
 from pydantic_settings import BaseSettings
+import os
 
 class Settings(BaseSettings):
     # Database
     # PostgreSQL (for production): "postgresql://postgres:password@localhost:5432/curagenie"
     # SQLite (for development):
-    database_url: str = "sqlite:///./curagenie.db"
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./curagenie.db")
+    
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -35,8 +38,5 @@ class Settings(BaseSettings):
     def get_cors_origins(self) -> List[str]:
         """Parse CORS origins from string to list"""
         return [origin.strip() for origin in self.cors_origins.split(",")]
-    
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
