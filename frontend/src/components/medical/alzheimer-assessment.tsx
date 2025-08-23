@@ -12,16 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Brain, Calculator, AlertTriangle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface AlzheimerData {
-  age: number;
-  education_years: number;
-  family_history: 'none' | 'one_parent' | 'both_parents' | 'siblings' | 'multiple';
-  cognitive_score: number; // MoCA or MMSE score (0-30)
-  apoe_status?: 'unknown' | 'e2_e2' | 'e2_e3' | 'e2_e4' | 'e3_e3' | 'e3_e4' | 'e4_e4';
-  cardiovascular_risk: 'low' | 'moderate' | 'high';
-  physical_activity: 'sedentary' | 'light' | 'moderate' | 'vigorous';
-}
+import { AlzheimerData, GeneticScore } from '@/types/medical';
 
 interface AlzheimerResult {
   clinical_risk: number;
@@ -64,7 +55,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
         if (response.ok) {
           const data = await response.json();
-          const hasAlzheimerData = data.some((score: any) => 
+          const hasAlzheimerData = data.some((score: GeneticScore) => 
             score.disease_name?.toLowerCase().includes('alzheimer') ||
             score.disease_name?.toLowerCase().includes('dementia')
           );
@@ -78,7 +69,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
     checkGenomicData();
   }, [userId]);
 
-  const handleInputChange = (field: keyof AlzheimerData, value: any) => {
+  const handleInputChange = (field: keyof AlzheimerData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -132,7 +123,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
           const geneticResponse = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
           if (geneticResponse.ok) {
             const geneticData = await geneticResponse.json();
-            const alzheimerScore = geneticData.find((score: any) => 
+            const alzheimerScore = geneticData.find((score: GeneticScore) => 
               score.disease_name?.toLowerCase().includes('alzheimer') ||
               score.disease_name?.toLowerCase().includes('dementia')
             );

@@ -20,23 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadMRIImage as uploadToAPI } from '@/lib/mri-service';
-
-interface MRIImageUploadProps {
-  onUploadSuccess?: (data: any) => void;
-  onImageProcessed?: (processedData: any) => void;
-  onCompleteAnalysis?: (uploadResult: any, file: File) => void;
-  userId: string;
-  compact?: boolean;
-}
-
-interface UploadedFile {
-  file: File;
-  preview: string;
-  id: string;
-  status: 'uploading' | 'processing' | 'completed' | 'error';
-  progress: number;
-  analysisResult?: any;
-}
+import { MRIImageUploadProps, UploadedFile, MRIAnalysisResult, ProcessedMRIData } from '@/types/medical';
 
 // Note: This component uses the MRI service from @/lib/mri-service.ts
 // The duplicate uploadMRIImage function has been removed to avoid confusion
