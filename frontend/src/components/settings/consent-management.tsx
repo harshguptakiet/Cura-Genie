@@ -45,8 +45,7 @@ const fetchConsentOptions = async (userId: string): Promise<ConsentOption[]> => 
 };
 
 const updateConsentOption = async ({ userId, consentId, enabled }: { userId: string, consentId: string, enabled: boolean }) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  // Remove artificial delay - use proper async operations
   return { success: true };
 };
 
@@ -82,12 +81,12 @@ export function ConsentManagement({ userId }: ConsentManagementProps) {
 
   const handleToggle = (consentId: string, currentState: boolean) => {
     // Optimistically update local state
-    setLocalOptions(prev => prev.map(option => 
-      option.id === consentId 
+    setLocalOptions(prev => prev.map(option =>
+      option.id === consentId
         ? { ...option, enabled: !currentState }
         : option
     ));
-    
+
     // Call API
     mutation.mutate({ userId, consentId, enabled: !currentState });
   };
@@ -144,7 +143,7 @@ export function ConsentManagement({ userId }: ConsentManagementProps) {
             <div>
               <h4 className="font-semibold text-blue-900 mb-1">Your Privacy, Your Choice</h4>
               <p className="text-sm text-blue-800">
-                These settings control how your genetic data is used. You can change these preferences at any time. 
+                These settings control how your genetic data is used. You can change these preferences at any time.
                 Changes take effect immediately and you can withdraw consent at any point.
               </p>
             </div>
@@ -166,13 +165,12 @@ export function ConsentManagement({ userId }: ConsentManagementProps) {
         <CardContent className="space-y-6">
           {localOptions.map((option, index) => {
             const isHighRisk = option.id === 'feature_1'; // Research sharing is higher risk
-            
+
             return (
-              <div 
-                key={option.id} 
-                className={`p-4 rounded-lg border transition-colors ${
-                  isHighRisk ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-gray-50'
-                }`}
+              <div
+                key={option.id}
+                className={`p-4 rounded-lg border transition-colors ${isHighRisk ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-gray-50'
+                  }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 pr-4">
@@ -183,25 +181,25 @@ export function ConsentManagement({ userId }: ConsentManagementProps) {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{option.description}</p>
-                    
+
                     {isHighRisk && (
                       <div className="bg-orange-100 border border-orange-200 rounded p-2 text-xs text-orange-800">
-                        <strong>Privacy Notice:</strong> This shares your genetic data with researchers. 
+                        <strong>Privacy Notice:</strong> This shares your genetic data with researchers.
                         Data is anonymized but cannot be completely de-identified.
                       </div>
                     )}
-                    
+
                     {option.id === 'feature_2' && (
                       <div className="bg-green-100 border border-green-200 rounded p-2 text-xs text-green-800">
-                        <strong>Recommended:</strong> This helps provide you with personalized health insights 
+                        <strong>Recommended:</strong> This helps provide you with personalized health insights
                         based on your genetic data.
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex flex-col items-center gap-2">
-                    <Switch 
-                      checked={option.enabled} 
+                    <Switch
+                      checked={option.enabled}
                       onCheckedChange={() => handleToggle(option.id, option.enabled)}
                       disabled={mutation.isPending}
                     />
@@ -237,17 +235,17 @@ export function ConsentManagement({ userId }: ConsentManagementProps) {
               <Shield className="h-4 w-4 mr-2" />
               View Full Privacy Policy
             </Button>
-            
+
             <Button variant="outline" className="justify-start">
               <Info className="h-4 w-4 mr-2" />
               Download My Data
             </Button>
-            
+
             <Button variant="outline" className="justify-start text-red-600 border-red-300 hover:bg-red-50">
               <AlertTriangle className="h-4 w-4 mr-2" />
               Delete All My Data
             </Button>
-            
+
             <Button variant="outline" className="justify-start">
               <Info className="h-4 w-4 mr-2" />
               Contact Privacy Team

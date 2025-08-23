@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Upload, 
-  FileImage, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  Upload,
+  FileImage,
+  CheckCircle,
+  AlertTriangle,
   Brain,
   Loader2,
   X,
@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadMRIImage as uploadToAPI } from '@/lib/mri-service';
+import { useTimer } from '@/lib/hooks/useTimer';
+import { UPLOAD_DELAYS } from '@/lib/constants/timing';
 
 interface MRIImageUploadProps {
   onUploadSuccess?: (data: any) => void;
@@ -42,6 +44,7 @@ interface UploadedFile {
 // The duplicate uploadMRIImage function has been removed to avoid confusion
 
 export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAnalysis, userId, compact = false }: MRIImageUploadProps) {
+  const { setTimeout, clearAllTimers } = useTimer();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,9 +56,9 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
       'application/dicom', 'application/octet-stream'
     ];
     const validExtensions = ['.dcm', '.dicom', '.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'];
-    
+
     const hasValidType = validTypes.includes(file.type);
-    const hasValidExtension = validExtensions.some(ext => 
+    const hasValidExtension = validExtensions.some(ext =>
       file.name.toLowerCase().endsWith(ext)
     );
 
@@ -106,22 +109,22 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
     try {
       // Upload and process the file using the service
       const result = await uploadToAPI(file, userId, (progress) => {
-        setUploadedFiles(prev => prev.map(f => 
+        setUploadedFiles(prev => prev.map(f =>
           f.id === fileId ? { ...f, progress } : f
         ));
       });
 
       // Update to processing status
-      setUploadedFiles(prev => prev.map(f => 
+      setUploadedFiles(prev => prev.map(f =>
         f.id === fileId ? { ...f, status: 'processing', progress: 100 } : f
       ));
 
       // Simulate AI processing time
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, UPLOAD_DELAYS.EXTENDED));
 
       // Mark as completed with results
-      setUploadedFiles(prev => prev.map(f => 
-        f.id === fileId 
+      setUploadedFiles(prev => prev.map(f =>
+        f.id === fileId
           ? { ...f, status: 'completed', analysisResult: result.analysis }
           : f
       ));
@@ -129,13 +132,13 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
       toast.success('MRI analysis completed successfully!');
       onUploadSuccess?.(result);
       onImageProcessed?.(result.analysis);
-      
+
       // Call the complete analysis callback with both result and file
       onCompleteAnalysis?.(result, file);
 
     } catch (error) {
       console.error('Upload/processing error:', error);
-      setUploadedFiles(prev => prev.map(f => 
+      setUploadedFiles(prev => prev.map(f =>
         f.id === fileId ? { ...f, status: 'error', progress: 0 } : f
       ));
       toast.error('Failed to process MRI image. Please try again.');
@@ -145,7 +148,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     files.forEach(processFile);
-    
+
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -155,7 +158,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(false);
-    
+
     const files = Array.from(event.dataTransfer.files);
     files.forEach(processFile);
   }, [userId]);
@@ -210,14 +213,13 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
             Upload DICOM files, JPEG, PNG, or TIFF images for AI-powered brain tumor analysis
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-              isDragging 
-                ? 'border-blue-500 bg-blue-50' 
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${isDragging
+                ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 hover:border-gray-400'
-            }`}
+              }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -227,7 +229,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
               <div className="p-4 bg-blue-100 rounded-full">
                 <Upload className="h-8 w-8 text-blue-600" />
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Drop MRI images here or click to browse
@@ -235,7 +237,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                 <p className="text-sm text-gray-600 mb-4">
                   Supports DICOM (.dcm), JPEG, PNG, TIFF formats up to 50MB
                 </p>
-                
+
                 <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-500">
                   <Badge variant="outline">DICOM</Badge>
                   <Badge variant="outline">JPEG</Badge>
@@ -245,7 +247,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                 </div>
               </div>
             </div>
-            
+
             <input
               ref={fileInputRef}
               type="file"
@@ -262,7 +264,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
       <Alert className="border-red-200 bg-red-50">
         <AlertTriangle className="h-4 w-4 text-red-600" />
         <AlertDescription className="text-red-800">
-          <strong>Medical Disclaimer:</strong> This AI analysis is for educational purposes only. 
+          <strong>Medical Disclaimer:</strong> This AI analysis is for educational purposes only.
           Results should be reviewed by qualified medical professionals. Do not use for clinical diagnosis.
         </AlertDescription>
       </Alert>
@@ -276,7 +278,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
               Processing Queue ({uploadedFiles.length})
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             {uploadedFiles.map((uploadedFile) => (
               <div
@@ -306,7 +308,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                     </h4>
                     {getStatusIcon(uploadedFile.status)}
                   </div>
-                  
+
                   <div className="text-sm text-gray-600 mb-2">
                     {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                   </div>
@@ -316,7 +318,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                     <div className="space-y-1">
                       <Progress value={uploadedFile.progress} className="h-2" />
                       <div className="text-xs text-gray-500">
-                        {uploadedFile.status === 'uploading' 
+                        {uploadedFile.status === 'uploading'
                           ? `Uploading... ${uploadedFile.progress}%`
                           : 'AI Analysis in progress...'}
                       </div>
@@ -330,7 +332,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                         Analysis Complete
                       </div>
                       <div className="text-xs text-green-700">
-                        {uploadedFile.analysisResult.detected_regions?.length || 0} region(s) detected • 
+                        {uploadedFile.analysisResult.detected_regions?.length || 0} region(s) detected •
                         Confidence: {((uploadedFile.analysisResult.overall_confidence || 0) * 100).toFixed(1)}%
                       </div>
                       {/* Visualization Display */}
@@ -377,10 +379,10 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                       </Button>
                     </>
                   )}
-                  
+
                   {uploadedFile.status === 'error' && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => retryUpload(uploadedFile.id)}
                     >
@@ -388,7 +390,7 @@ export function MRIImageUpload({ onUploadSuccess, onImageProcessed, onCompleteAn
                       Retry
                     </Button>
                   )}
-                  
+
                   <Button
                     variant="ghost"
                     size="sm"
