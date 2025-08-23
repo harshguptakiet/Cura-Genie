@@ -10,6 +10,8 @@ import { Progress } from './progress';
 import { Alert, AlertDescription } from './alert';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTimer } from '@/lib/hooks/useTimer';
+import { UPLOAD_DELAYS } from '@/lib/constants/timing';
 
 interface FileUploadProps {
   onUploadSuccess?: (data: any) => void;
@@ -29,14 +31,14 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
     formData.append('user_id', userId);
 
     const xhr = new XMLHttpRequest();
-    
+
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const progress = Math.round((event.loaded / event.total) * 100);
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -74,22 +76,22 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
         reject(new Error(errorMessage));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
       console.error('Upload network error');
       reject(new Error('Upload failed due to network error'));
     });
-    
+
     // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
     // Use the unauthenticated test endpoint for uploads
     xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
-    
+
     // If you switch to the authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }
-    
+
     xhr.send(formData);
   });
 };
@@ -97,11 +99,12 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
 
 export function FileUpload({ onUploadSuccess }: FileUploadProps) {
   const { user, token } = useAuthStore();
+  const { setTimeout, clearAllTimers } = useTimer();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const userId = user?.id?.toString() || "1";
   const authToken = token || "";
 
@@ -109,33 +112,33 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     mutationFn: (file: File) => uploadGenomicFile(file, userId, authToken, setUploadProgress),
     onSuccess: (data) => {
       toast.success('File uploaded successfully!');
-      
+
       // Reset all upload-related state completely
       setSelectedFile(null);
       setUploadProgress(0);
-      
+
       // Clear file input element
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
         fileInputRef.current.files = null;
       }
-      
+
       // Reset the mutation state to allow new uploads
       setTimeout(() => {
         uploadMutation.reset();
-      }, 100);
-      
+      }, UPLOAD_DELAYS.MINIMUM);
+
       onUploadSuccess?.(data);
     },
     onError: (error: any) => {
       console.error('Upload error:', error);
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);
-      
+
       // Reset mutation state on error too
       setTimeout(() => {
         uploadMutation.reset();
-      }, 1000);
+      }, UPLOAD_DELAYS.STANDARD);
     },
   });
 
@@ -145,12 +148,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
       // Validate file type
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -167,12 +170,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     if (file) {
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -186,16 +189,16 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     setSelectedFile(null);
     setUploadProgress(0);
     setShowSuccessMessage(false);
-    
+
     // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.files = null;
     }
-    
+
     // Reset mutation state
     uploadMutation.reset();
-    
+
     toast.info('Ready for new file upload');
   };
 

@@ -15,14 +15,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useTimer } from '@/lib/hooks/useTimer';
+import { UPLOAD_DELAYS } from '@/lib/constants/timing';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  Clock, 
-  Upload, 
-  BarChart3, 
-  Brain, 
-  FileText, 
+import {
+  CheckCircle,
+  Clock,
+  Upload,
+  BarChart3,
+  Brain,
+  FileText,
   TrendingUp,
   Heart,
   Shield,
@@ -45,7 +47,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 const fetchDashboardStats = async (userId: string) => {
   try {
     console.log(`Fetching dashboard stats for user: ${userId}`);
-    
+
     // Use the API base URL from environment
     const statsResponse = await fetch(`${API_BASE_URL}/api/direct/dashboard-stats/user/${userId}`, {
       method: 'GET',
@@ -53,13 +55,13 @@ const fetchDashboardStats = async (userId: string) => {
         'Content-Type': 'application/json',
       },
     });
-    
+
     console.log(`Dashboard Stats API Response status: ${statsResponse.status}`);
-    
+
     if (statsResponse.ok) {
       const statsData = await statsResponse.json();
       console.log('Dashboard stats received:', statsData);
-      
+
       // Also fetch detailed PRS scores for the components
       try {
         const prsResponse = await fetch(`${API_BASE_URL}/api/direct/prs/user/${userId}`, {
@@ -68,11 +70,11 @@ const fetchDashboardStats = async (userId: string) => {
             'Content-Type': 'application/json',
           },
         });
-        
+
         if (prsResponse.ok) {
           const prsData = await prsResponse.json();
           console.log(`PRS scores received: ${prsData.length} records`);
-          
+
           // Combine the data for dashboard display
           return {
             prsScores: prsData,
@@ -114,14 +116,14 @@ const fetchDashboardStats = async (userId: string) => {
   } catch (error) {
     console.warn('Backend not available, using fallback data:', error);
     // Return fallback data when backend is not available
-    return { 
-      prsScores: [], 
-      stats: null, 
-      hasData: false, 
-      totalScores: 0, 
-      averageScore: 0, 
+    return {
+      prsScores: [],
+      stats: null,
+      hasData: false,
+      totalScores: 0,
+      averageScore: 0,
       diseasesAnalyzed: 0,
-      isOffline: true 
+      isOffline: true
     };
   }
 };
@@ -132,8 +134,9 @@ export default function DashboardPage() {
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
-  
-// Fetch dashboard stats
+  const { setTimeout, clearAllTimers } = useTimer();
+
+  // Fetch dashboard stats
   const { data: dashboardData = { prsScores: [], hasData: false, totalScores: 0, averageScore: 0, diseasesAnalyzed: 0 } } = useQuery({
     queryKey: ['dashboard-stats', userId],
     queryFn: () => fetchDashboardStats(userId),
@@ -146,63 +149,63 @@ export default function DashboardPage() {
     console.log('File uploaded successfully:', data);
     setHasUploadedFile(true);
     setIsProcessing(true);
-    
+
     toast.success('File uploaded! Processing your genomic data...');
-    
-    // Simulate processing time and then refresh data
+
+    // Use proper timer management for data refresh
     setTimeout(async () => {
       try {
         console.log('Starting data refresh after upload...');
-        
+
         // Invalidate and refetch the data with individual error handling
         const refreshPromises = [];
-        
+
         try {
           refreshPromises.push(queryClient.invalidateQueries({ queryKey: ['prs-scores', userId] }));
           console.log('PRS scores query invalidated');
         } catch (error) {
           console.warn('Failed to invalidate PRS scores query:', error);
         }
-        
+
         try {
           refreshPromises.push(queryClient.invalidateQueries({ queryKey: ['recommendations', userId] }));
           console.log('Recommendations query invalidated');
         } catch (error) {
           console.warn('Failed to invalidate recommendations query:', error);
         }
-        
+
         try {
           refreshPromises.push(queryClient.invalidateQueries({ queryKey: ['dashboard-stats', userId] }));
           console.log('Dashboard stats query invalidated');
         } catch (error) {
           console.warn('Failed to invalidate dashboard stats query:', error);
         }
-        
+
         // Wait for all invalidations to complete (but don't fail if some fail)
         await Promise.allSettled(refreshPromises);
-        
+
         setIsProcessing(false);
         console.log('Data refresh completed successfully');
         toast.success('Analysis complete! Your results are now available. You can upload another file if needed.');
-        
+
         // Reset upload state to allow new uploads
         setTimeout(() => {
           setHasUploadedFile(false);
-        }, 1000);
-        
+        }, UPLOAD_DELAYS.STANDARD);
+
       } catch (error) {
         console.error('Error during post-upload processing:', error);
         setIsProcessing(false);
-        
+
         // Still show success since upload worked, just refresh failed
         toast.success('File uploaded successfully! Please refresh the page to see new results.');
-        
+
         // Reset upload state even on error
         setTimeout(() => {
           setHasUploadedFile(false);
-        }, 1000);
+        }, UPLOAD_DELAYS.STANDARD);
       }
-    }, 3000); // Increased to 3 seconds for better UX
+    }, UPLOAD_DELAYS.EXTENDED); // Use proper timing constant
   };
 
   // Use data from the new dashboard stats structure
@@ -210,7 +213,7 @@ export default function DashboardPage() {
   const averageScore = dashboardData.averageScore || 0;
   const totalScores = dashboardData.totalScores || 0;
   const diseasesAnalyzed = dashboardData.diseasesAnalyzed || 0;
-  
+
   const quickStats = [
     {
       title: "Genomic Analysis",
@@ -282,13 +285,13 @@ export default function DashboardPage() {
           <span><strong>Demo Mode:</strong> Backend offline - interface testing available</span>
         </div>
       )}
-      
+
       {/* Welcome Header */}
       <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white rounded-2xl p-8 overflow-hidden shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm"></div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
-        
+
         <div className="relative z-10 flex items-center justify-between">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -324,11 +327,10 @@ export default function DashboardPage() {
 
       {/* Processing Status - Subtle */}
       {hasUploadedFile && (
-        <div className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${
-          isProcessing 
-            ? "bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 text-amber-800" 
+        <div className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${isProcessing
+            ? "bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 text-amber-800"
             : "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-800"
-        }`}>
+          }`}>
           {isProcessing ? (
             <>
               <Clock className="h-4 w-4 text-amber-600 animate-spin" />
@@ -381,7 +383,7 @@ export default function DashboardPage() {
                 <p className="text-gray-600 mb-4 max-w-md">
                   Upload your genomic data to unlock personalized health insights.
                 </p>
-                <Button 
+                <Button
                   onClick={() => {
                     const uploadSection = document.getElementById('upload');
                     if (uploadSection) {
@@ -412,8 +414,8 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-600 mb-3">
                   Upload your genomic data for personalized health insights
                 </p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     const uploadSection = document.getElementById('upload');
@@ -441,8 +443,8 @@ export default function DashboardPage() {
                   {hasData ? "View your personalized genomic analysis" : "Results will appear here after upload"}
                 </p>
                 <Link href="/dashboard/visualizations">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     disabled={!hasData}
                   >
@@ -468,7 +470,7 @@ export default function DashboardPage() {
               Clinical Files
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="genomic">
             <Card>
               <CardHeader>
@@ -485,7 +487,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="clinical">
             <ClinicalFileUpload onUploadSuccess={handleUploadSuccess} assessmentType="general" />
           </TabsContent>
@@ -520,7 +522,7 @@ export default function DashboardPage() {
                   Health Assessments
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="scores" className="mt-6">
                 <div className="space-y-4">
                   <div className="border-l-4 border-blue-500 pl-4">
@@ -532,7 +534,7 @@ export default function DashboardPage() {
                   <PrsScoreDisplay userId={userId} key={hasUploadedFile ? 'uploaded' : 'initial'} />
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="recommendations" className="mt-6">
                 <div className="space-y-4">
                   <div className="border-l-4 border-green-500 pl-4">
@@ -544,7 +546,7 @@ export default function DashboardPage() {
                   <RecommendationsDisplay userId={userId} key={hasUploadedFile ? 'uploaded-rec' : 'initial-rec'} />
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="assessments" className="mt-6">
                 <div className="space-y-6">
                   <div className="border-l-4 border-purple-500 pl-4 mb-6">
@@ -553,7 +555,7 @@ export default function DashboardPage() {
                       Comprehensive analysis for specific health conditions based on your genomic data.
                     </p>
                   </div>
-                  
+
                   <div className="grid gap-6">
                     <Card className="border-left-accent border-l-red-400">
                       <CardHeader className="pb-3">
@@ -577,7 +579,7 @@ export default function DashboardPage() {
                         </Tabs>
                       </CardContent>
                     </Card>
-                    
+
                     <Card className="border-left-accent border-l-purple-400">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2">
@@ -600,7 +602,7 @@ export default function DashboardPage() {
                         </Tabs>
                       </CardContent>
                     </Card>
-                    
+
                     <Card className="border-left-accent border-l-orange-400">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2">

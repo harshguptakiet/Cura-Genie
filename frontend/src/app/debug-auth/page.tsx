@@ -7,20 +7,21 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useRouter } from 'next/navigation'
+import { NAVIGATION_DELAYS } from '@/lib/constants/timing'
 
 export default function DebugAuthPage() {
   const [email, setEmail] = useState('demo@test.com')
   const [password, setPassword] = useState('password')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
-  
+
   const { login, register, isLoading, user, token, isAuthenticated } = useAuthStore()
   const router = useRouter()
 
   const testBackendHealth = async () => {
     setStatus('Testing backend health...')
     setError('')
-    
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/health`)
       if (response.ok) {
@@ -37,11 +38,12 @@ export default function DebugAuthPage() {
   const testLogin = async () => {
     setStatus('Testing login...')
     setError('')
-    
+
     try {
       await login(email, password)
       setStatus('✅ Login successful!')
-      setTimeout(() => router.push('/dashboard'), 1000)
+      // Use proper navigation delay for better UX
+      setTimeout(() => router.push('/dashboard'), NAVIGATION_DELAYS.SUCCESS_REDIRECT)
     } catch (err: any) {
       setError(`❌ Login failed: ${err.message}`)
       setStatus('')
@@ -51,7 +53,7 @@ export default function DebugAuthPage() {
   const testRegister = async () => {
     setStatus('Testing registration...')
     setError('')
-    
+
     try {
       await register({
         email: email,
@@ -60,7 +62,8 @@ export default function DebugAuthPage() {
         role: 'patient'
       })
       setStatus('✅ Registration successful!')
-      setTimeout(() => router.push('/dashboard'), 1000)
+      // Use proper navigation delay for better UX
+      setTimeout(() => router.push('/dashboard'), NAVIGATION_DELAYS.SUCCESS_REDIRECT)
     } catch (err: any) {
       setError(`❌ Registration failed: ${err.message}`)
       setStatus('')
@@ -69,7 +72,7 @@ export default function DebugAuthPage() {
 
   const manualLogin = () => {
     setStatus('Creating manual demo user...')
-    
+
     // Manually set authentication state
     useAuthStore.setState({
       user: {
@@ -85,9 +88,10 @@ export default function DebugAuthPage() {
       isAuthenticated: true,
       isLoading: false
     })
-    
+
     setStatus('✅ Manual login successful!')
-    setTimeout(() => router.push('/dashboard'), 1000)
+    // Use proper navigation delay for better UX
+    setTimeout(() => router.push('/dashboard'), NAVIGATION_DELAYS.SUCCESS_REDIRECT)
   }
 
   return (
@@ -99,7 +103,7 @@ export default function DebugAuthPage() {
             Debug authentication issues and test different scenarios
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Current Status */}
           <div className="bg-gray-50 p-4 rounded-lg">
@@ -156,8 +160,8 @@ export default function DebugAuthPage() {
 
           {/* Quick Access */}
           <div className="pt-4 border-t">
-            <Button 
-              onClick={() => router.push('/dashboard')} 
+            <Button
+              onClick={() => router.push('/dashboard')}
               className="w-full"
               variant="outline"
             >
