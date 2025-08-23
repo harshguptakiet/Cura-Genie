@@ -2,6 +2,8 @@
  * MRI Service - Handles all MRI-related API calls and database operations
  */
 
+import { logAnalysis, logger } from './logger';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export interface MRIUploadResponse {
@@ -47,8 +49,8 @@ export interface MRIImageMetadata {
  * Upload MRI image with progress tracking
  */
 export const uploadMRIImage = async (
-  file: File, 
-  userId: string, 
+  file: File,
+  userId: string,
   onProgress?: (progress: number) => void
 ): Promise<MRIUploadResponse> => {
   return new Promise((resolve, reject) => {
@@ -59,7 +61,7 @@ export const uploadMRIImage = async (
     formData.append('store_in_db', 'true');
 
     const xhr = new XMLHttpRequest();
-    
+
     // Track upload progress
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable && onProgress) {
@@ -67,7 +69,7 @@ export const uploadMRIImage = async (
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -79,7 +81,7 @@ export const uploadMRIImage = async (
           }
         } catch (e) {
           // Fallback to demo mode if backend not available
-          console.log('Backend not available, using demo mode');
+          logAnalysis('warn', 'Backend not available, using demo mode', 'mri_upload', { error: e.message });
           const simulatedResponse: MRIUploadResponse = {
             success: true,
             image_id: `mri_${Date.now()}`,
@@ -121,11 +123,11 @@ export const uploadMRIImage = async (
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
       reject(new Error('Network error during upload'));
     });
-    
+
     xhr.open('POST', `${API_BASE_URL}/api/mri/upload-and-analyze`);
     xhr.send(formData);
   });
@@ -151,7 +153,7 @@ export const getUserMRIImages = async (userId: string): Promise<MRIImageMetadata
     const data = await response.json();
     return data.images || [];
   } catch (error) {
-    console.error('Failed to fetch user MRI images:', error);
+    logAnalysis('error', 'Failed to fetch user MRI images', 'mri_fetch', { error: error.message });
     // Return empty array if backend not available
     return [];
   }
@@ -175,7 +177,7 @@ export const getMRIAnalysis = async (imageId: string): Promise<any> => {
 
     return await response.json();
   } catch (error) {
-    console.error('Failed to fetch MRI analysis:', error);
+    logAnalysis('error', 'Failed to fetch MRI analysis', 'mri_analysis', { error: error.message });
     throw error;
   }
 };
@@ -194,7 +196,7 @@ export const deleteMRIImage = async (imageId: string): Promise<boolean> => {
 
     return response.ok;
   } catch (error) {
-    console.error('Failed to delete MRI image:', error);
+    logAnalysis('error', 'Failed to delete MRI image', 'mri_deletion', { error: error.message });
     return false;
   }
 };

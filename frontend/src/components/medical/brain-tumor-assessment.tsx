@@ -13,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Brain, Calculator, AlertTriangle, CheckCircle, Info, TrendingUp, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { logAnalysis } from '@/lib/logger';
 
 interface BrainTumorData {
   age: number;
@@ -90,7 +91,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
       viral_infections: false
     }
   });
-  
+
   const [result, setResult] = useState<BrainTumorResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [genomicDataAvailable, setGenomicDataAvailable] = useState(false);
@@ -102,7 +103,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
         if (response.ok) {
           const data = await response.json();
-          const hasBrainTumorData = data.some((score: any) => 
+          const hasBrainTumorData = data.some((score: any) =>
             score.disease_name?.toLowerCase().includes('brain') ||
             score.disease_name?.toLowerCase().includes('glioma') ||
             score.disease_name?.toLowerCase().includes('meningioma') ||
@@ -111,10 +112,13 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
           setGenomicDataAvailable(hasBrainTumorData);
         }
       } catch (error) {
-        console.error('Error checking genomic data:', error);
+        logAnalysis('error', 'Error checking genomic data', 'brain_tumor_assessment', {
+          userId,
+          error: error.message
+        });
       }
     };
-    
+
     checkGenomicData();
   }, [userId]);
 
@@ -138,17 +142,17 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
     try {
       // Calculate clinical risk score
       let clinicalRisk = 0;
-      
+
       // Age factor (peaks at middle age for some types)
       if (formData.age >= 65) clinicalRisk += 15;
       else if (formData.age >= 45) clinicalRisk += 10;
       else if (formData.age >= 20) clinicalRisk += 5;
       else if (formData.age < 10) clinicalRisk += 8; // Pediatric brain tumors
-      
+
       // Sex factor (varies by tumor type)
       if (formData.sex === 'male') clinicalRisk += 3; // Slightly higher for gliomas
       else if (formData.sex === 'female') clinicalRisk += 2; // Higher for meningiomas
-      
+
       // Family history (strongest genetic factor)
       const familyRiskMap = {
         'none': 0,
@@ -159,7 +163,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         'multiple': 35
       };
       clinicalRisk += familyRiskMap[formData.family_history];
-      
+
       // Radiation exposure (well-established risk factor)
       const radiationRiskMap = {
         'none': 0,
@@ -169,7 +173,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         'atomic': 25
       };
       clinicalRisk += radiationRiskMap[formData.radiation_exposure];
-      
+
       // Immune status
       const immuneRiskMap = {
         'normal': 0,
@@ -177,16 +181,16 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         'compromised_severe': 15
       };
       clinicalRisk += immuneRiskMap[formData.immune_status];
-      
+
       // Hormone factors (primarily for meningiomas)
       if (formData.hormone_factors.hormone_therapy) clinicalRisk += 5;
-      
+
       // Symptoms (may indicate existing tumor)
       const symptomCount = Object.values(formData.symptoms).filter(Boolean).length;
       if (symptomCount >= 3) clinicalRisk += 20;
       else if (symptomCount >= 2) clinicalRisk += 10;
       else if (symptomCount === 1) clinicalRisk += 3;
-      
+
       // Environmental factors
       const cellPhoneRiskMap = {
         'minimal': 0,
@@ -195,30 +199,30 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         'extreme': 5
       };
       clinicalRisk += cellPhoneRiskMap[formData.environmental_factors.cell_phone_use];
-      
+
       if (formData.environmental_factors.chemical_exposure) clinicalRisk += 5;
       if (formData.environmental_factors.viral_infections) clinicalRisk += 3;
-      
+
       clinicalRisk = Math.max(0, Math.min(100, clinicalRisk));
-      
+
       // Try to get genetic risk
       let geneticRisk = 0;
       let genomicVariants = undefined;
-      
+
       if (genomicDataAvailable) {
         try {
           const geneticResponse = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
           if (geneticResponse.ok) {
             const geneticData = await geneticResponse.json();
-            const brainTumorScore = geneticData.find((score: any) => 
+            const brainTumorScore = geneticData.find((score: any) =>
               score.disease_name?.toLowerCase().includes('brain') ||
               score.disease_name?.toLowerCase().includes('glioma') ||
               score.disease_name?.toLowerCase().includes('meningioma')
             );
-            
+
             if (brainTumorScore) {
               geneticRisk = Math.round(brainTumorScore.risk_score * 100);
-              
+
               // Mock genomic variants data (would come from actual analysis)
               genomicVariants = {
                 tp53_status: 'wildtype', // or 'mutated'
@@ -229,15 +233,18 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
             }
           }
         } catch (error) {
-          console.error('Error fetching genetic data:', error);
+          logAnalysis('error', 'Error fetching genetic data', 'brain_tumor_assessment', {
+            userId,
+            error: error.message
+          });
         }
       }
-      
+
       // Combined risk calculation
-      const combinedRisk = genomicDataAvailable ? 
-        Math.round((clinicalRisk * 0.7) + (geneticRisk * 0.3)) : 
+      const combinedRisk = genomicDataAvailable ?
+        Math.round((clinicalRisk * 0.7) + (geneticRisk * 0.3)) :
         clinicalRisk;
-      
+
       // Calculate tumor-specific risks
       const tumorTypeRisks = {
         glioma: Math.round(combinedRisk * (formData.sex === 'male' ? 1.2 : 0.8)),
@@ -245,14 +252,14 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         acoustic_neuroma: Math.round(combinedRisk * 0.6),
         pituitary_adenoma: Math.round(combinedRisk * 0.9)
       };
-      
+
       // Determine risk category
       let riskCategory: 'Low' | 'Moderate' | 'High' | 'Very High';
       if (combinedRisk < 15) riskCategory = 'Low';
       else if (combinedRisk < 35) riskCategory = 'Moderate';
       else if (combinedRisk < 60) riskCategory = 'High';
       else riskCategory = 'Very High';
-      
+
       // Generate risk factors
       const riskFactors: string[] = [];
       if (formData.family_history !== 'none') riskFactors.push('Family history of brain tumors or genetic syndromes');
@@ -262,7 +269,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
       if (symptomCount >= 2) riskFactors.push('Multiple neurological symptoms present');
       if (formData.environmental_factors.chemical_exposure) riskFactors.push('Chemical exposure history');
       if (formData.environmental_factors.cell_phone_use === 'extreme') riskFactors.push('Heavy cell phone usage');
-      
+
       // Generate protective factors
       const protectiveFactors: string[] = [];
       if (formData.family_history === 'none') protectiveFactors.push('No family history of brain tumors');
@@ -270,7 +277,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
       if (formData.immune_status === 'normal') protectiveFactors.push('Normal immune function');
       if (symptomCount === 0) protectiveFactors.push('No neurological symptoms');
       if (!formData.environmental_factors.chemical_exposure) protectiveFactors.push('No known chemical exposures');
-      
+
       // Generate recommendations
       const recommendations: string[] = [];
       if (combinedRisk >= 35) {
@@ -283,17 +290,17 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
       if (formData.family_history !== 'none') {
         recommendations.push('Genetic counseling recommended for hereditary cancer syndromes');
       }
-      
+
       recommendations.push('Limit unnecessary radiation exposure (CT scans, etc.)');
       recommendations.push('Maintain overall health with regular exercise and balanced nutrition');
       recommendations.push('Consider reducing cell phone usage and using hands-free devices');
       recommendations.push('Avoid known carcinogenic chemicals when possible');
-      
+
       if (genomicDataAvailable && geneticRisk > 25) {
         recommendations.push('Discuss enhanced screening protocols with healthcare provider');
         recommendations.push('Consider participation in high-risk surveillance programs');
       }
-      
+
       const assessmentResult: BrainTumorResult = {
         clinical_risk: clinicalRisk,
         genetic_risk: geneticRisk,
@@ -305,12 +312,15 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         recommendations: recommendations,
         genomic_variants: genomicVariants
       };
-      
+
       setResult(assessmentResult);
       toast.success('Brain tumor risk assessment completed!');
-      
+
     } catch (error) {
-      console.error('Error calculating brain tumor risk:', error);
+      logAnalysis('error', 'Error calculating brain tumor risk', 'brain_tumor_assessment', {
+        userId,
+        error: error.message
+      });
       toast.error('Error calculating risk assessment. Please try again.');
     } finally {
       setLoading(false);
@@ -339,7 +349,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         <CardDescription className="text-base">
           Comprehensive assessment combining clinical factors, family history, environmental exposures, and genomic risk analysis for brain tumors.
         </CardDescription>
-        
+
         {!genomicDataAvailable && (
           <Alert className="border-amber-200 bg-amber-50">
             <Info className="h-4 w-4 text-amber-600" />
@@ -482,7 +492,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="chemical_exposure"
@@ -491,7 +501,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
                   />
                   <Label htmlFor="chemical_exposure" className="text-sm">Chemical/pesticide exposure</Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="viral_infections"
@@ -503,8 +513,8 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
               </div>
             </div>
 
-            <Button 
-              onClick={calculateRisk} 
+            <Button
+              onClick={calculateRisk}
               disabled={loading || formData.age <= 0}
               className="w-full bg-indigo-600 hover:bg-indigo-700"
             >
@@ -533,7 +543,7 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
                       {result.risk_category} Risk
                     </Badge>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between items-center mb-2">
@@ -660,11 +670,11 @@ const BrainTumorAssessment: React.FC<BrainTumorAssessmentProps> = ({ userId }) =
         </div>
 
         <Separator className="my-8" />
-        
+
         <div className="bg-red-50 p-4 rounded-lg border border-red-200">
           <p className="text-sm text-red-800">
-            <strong>Important:</strong> This assessment is for educational purposes only. If you have neurological symptoms, 
-            seek immediate medical evaluation. Brain tumors are rare, and most symptoms have benign causes. 
+            <strong>Important:</strong> This assessment is for educational purposes only. If you have neurological symptoms,
+            seek immediate medical evaluation. Brain tumors are rare, and most symptoms have benign causes.
             Consult with a healthcare provider or neurologist for professional evaluation.
           </p>
         </div>

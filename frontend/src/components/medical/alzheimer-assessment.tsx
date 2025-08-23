@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Brain, Calculator, AlertTriangle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { logAnalysis } from '@/lib/logger';
 
 interface AlzheimerData {
   age: number;
@@ -52,7 +53,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
     cardiovascular_risk: 'low',
     physical_activity: 'moderate'
   });
-  
+
   const [result, setResult] = useState<AlzheimerResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [genomicDataAvailable, setGenomicDataAvailable] = useState(false);
@@ -64,17 +65,20 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
         if (response.ok) {
           const data = await response.json();
-          const hasAlzheimerData = data.some((score: any) => 
+          const hasAlzheimerData = data.some((score: any) =>
             score.disease_name?.toLowerCase().includes('alzheimer') ||
             score.disease_name?.toLowerCase().includes('dementia')
           );
           setGenomicDataAvailable(hasAlzheimerData);
         }
       } catch (error) {
-        console.error('Error checking genomic data:', error);
+        logAnalysis('error', 'Error checking genomic data', 'alzheimer_assessment', {
+          userId,
+          error: error.message
+        });
       }
     };
-    
+
     checkGenomicData();
   }, [userId]);
 
@@ -87,13 +91,13 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
     try {
       // Calculate clinical risk score
       let clinicalRisk = 0;
-      
+
       // Age factor (strongest predictor)
       if (formData.age >= 85) clinicalRisk += 40;
       else if (formData.age >= 75) clinicalRisk += 25;
       else if (formData.age >= 65) clinicalRisk += 15;
       else if (formData.age >= 55) clinicalRisk += 5;
-      
+
       // Family history
       const familyRiskMap = {
         'none': 0,
@@ -103,43 +107,43 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         'multiple': 20
       };
       clinicalRisk += familyRiskMap[formData.family_history];
-      
+
       // Cognitive score (lower is worse)
       if (formData.cognitive_score < 18) clinicalRisk += 15;
       else if (formData.cognitive_score < 24) clinicalRisk += 8;
       else if (formData.cognitive_score < 26) clinicalRisk += 3;
-      
+
       // Education (protective)
       if (formData.education_years < 8) clinicalRisk += 5;
       else if (formData.education_years > 16) clinicalRisk -= 3;
-      
+
       // Cardiovascular risk
       const cvRiskMap = { 'low': 0, 'moderate': 5, 'high': 10 };
       clinicalRisk += cvRiskMap[formData.cardiovascular_risk];
-      
+
       // Physical activity (protective)
       const activityMap = { 'sedentary': 5, 'light': 2, 'moderate': -2, 'vigorous': -5 };
       clinicalRisk += activityMap[formData.physical_activity];
-      
+
       clinicalRisk = Math.max(0, Math.min(100, clinicalRisk));
-      
+
       // Try to get genetic risk
       let geneticRisk = 0;
       let genomicVariants = undefined;
-      
+
       if (genomicDataAvailable) {
         try {
           const geneticResponse = await fetch(`http://localhost:8000/api/direct/prs/user/${userId}`);
           if (geneticResponse.ok) {
             const geneticData = await geneticResponse.json();
-            const alzheimerScore = geneticData.find((score: any) => 
+            const alzheimerScore = geneticData.find((score: any) =>
               score.disease_name?.toLowerCase().includes('alzheimer') ||
               score.disease_name?.toLowerCase().includes('dementia')
             );
-            
+
             if (alzheimerScore) {
               geneticRisk = Math.round(alzheimerScore.risk_score * 100);
-              
+
               // Mock genomic variants data (would come from actual analysis)
               genomicVariants = {
                 apoe_status: formData.apoe_status !== 'unknown' ? formData.apoe_status : 'e3_e3',
@@ -149,22 +153,25 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
             }
           }
         } catch (error) {
-          console.error('Error fetching genetic data:', error);
+          logAnalysis('error', 'Error fetching genetic data', 'alzheimer_assessment', {
+            userId,
+            error: error.message
+          });
         }
       }
-      
+
       // Combined risk calculation
-      const combinedRisk = genomicDataAvailable ? 
-        Math.round((clinicalRisk * 0.6) + (geneticRisk * 0.4)) : 
+      const combinedRisk = genomicDataAvailable ?
+        Math.round((clinicalRisk * 0.6) + (geneticRisk * 0.4)) :
         clinicalRisk;
-      
+
       // Determine risk category
       let riskCategory: 'Low' | 'Moderate' | 'High' | 'Very High';
       if (combinedRisk < 20) riskCategory = 'Low';
       else if (combinedRisk < 40) riskCategory = 'Moderate';
       else if (combinedRisk < 70) riskCategory = 'High';
       else riskCategory = 'Very High';
-      
+
       // Generate risk factors
       const riskFactors: string[] = [];
       if (formData.age >= 65) riskFactors.push('Advanced age');
@@ -174,7 +181,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
       if (formData.cardiovascular_risk === 'high') riskFactors.push('High cardiovascular risk');
       if (formData.physical_activity === 'sedentary') riskFactors.push('Sedentary lifestyle');
       if (formData.apoe_status?.includes('e4')) riskFactors.push('APOE-ε4 carrier');
-      
+
       // Generate protective factors
       const protectiveFactors: string[] = [];
       if (formData.education_years > 16) protectiveFactors.push('Higher education');
@@ -182,7 +189,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
       if (formData.cardiovascular_risk === 'low') protectiveFactors.push('Good cardiovascular health');
       if (formData.cognitive_score >= 28) protectiveFactors.push('Excellent cognitive function');
       if (!formData.apoe_status?.includes('e4')) protectiveFactors.push('No APOE-ε4 alleles');
-      
+
       // Generate recommendations
       const recommendations: string[] = [];
       if (combinedRisk >= 40) {
@@ -198,12 +205,12 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
       recommendations.push('Maintain cognitive engagement through learning and social activities');
       recommendations.push('Follow Mediterranean or MIND diet patterns');
       recommendations.push('Ensure adequate sleep (7-9 hours) and manage stress');
-      
+
       if (genomicDataAvailable && geneticRisk > 30) {
         recommendations.push('Consider genetic counseling for family planning discussions');
         recommendations.push('Discuss preventive strategies with healthcare provider');
       }
-      
+
       const assessmentResult: AlzheimerResult = {
         clinical_risk: clinicalRisk,
         genetic_risk: geneticRisk,
@@ -214,12 +221,15 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         recommendations: recommendations,
         genomic_variants: genomicVariants
       };
-      
+
       setResult(assessmentResult);
       toast.success('Alzheimer\'s risk assessment completed!');
-      
+
     } catch (error) {
-      console.error('Error calculating Alzheimer\'s risk:', error);
+      logAnalysis('error', 'Error calculating Alzheimer\'s risk', 'alzheimer_assessment', {
+        userId,
+        error: error.message
+      });
       toast.error('Error calculating risk assessment. Please try again.');
     } finally {
       setLoading(false);
@@ -255,7 +265,7 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         <CardDescription className="text-base">
           Comprehensive assessment combining clinical factors with genomic risk analysis for Alzheimer's disease and dementia.
         </CardDescription>
-        
+
         {!genomicDataAvailable && (
           <Alert className="border-amber-200 bg-amber-50">
             <Info className="h-4 w-4 text-amber-600" />
@@ -380,8 +390,8 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
               </div>
             )}
 
-            <Button 
-              onClick={calculateRisk} 
+            <Button
+              onClick={calculateRisk}
               disabled={loading || formData.age < 18}
               className="w-full bg-purple-600 hover:bg-purple-700"
             >
@@ -410,15 +420,15 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
                       {result.risk_category} Risk
                     </Badge>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Combined Risk Score</span>
                         <span className="text-2xl font-bold">{result.combined_risk}%</span>
                       </div>
-                      <Progress 
-                        value={result.combined_risk} 
+                      <Progress
+                        value={result.combined_risk}
                         className="h-3"
                       />
                     </div>
@@ -513,10 +523,10 @@ const AlzheimerAssessment: React.FC<AlzheimerAssessmentProps> = ({ userId }) => 
         </div>
 
         <Separator className="my-8" />
-        
+
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800">
-            <strong>Important:</strong> This assessment is for educational purposes and should not replace professional medical advice. 
+            <strong>Important:</strong> This assessment is for educational purposes and should not replace professional medical advice.
             Consult with a healthcare provider or neurologist for comprehensive evaluation and personalized care recommendations.
           </p>
         </div>

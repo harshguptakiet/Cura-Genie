@@ -16,6 +16,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
+import { logAnalysis } from '@/lib/logger';
 
 interface PrsChartData {
   condition: string;
@@ -29,56 +30,65 @@ interface PrsChartProps {
   userId: string;
 }
 
-// Real API function to fetch PRS data from backend
+// Real API function to fetch PRS chart data from backend
 const fetchPrsChartData = async (userId: string): Promise<PrsChartData[]> => {
   try {
-    console.log(`Fetching PRS chart data for user: ${userId}`);
+    logAnalysis('debug', 'Fetching PRS chart data', 'prs_chart', { userId });
     const response = await fetch(`http://127.0.0.1:8000/api/direct/prs/user/${userId}`);
-    
+
     if (!response.ok) {
       if (response.status === 404) {
-        console.log('No PRS data found - returning empty array');
+        logAnalysis('info', 'No PRS data found - returning empty array', 'prs_chart', { userId });
         return [];
       }
       throw new Error(`Failed to fetch PRS data: ${response.status}`);
     }
-    
+
     const rawData = await response.json();
-    console.log('Raw PRS data received:', rawData);
-    
+    logAnalysis('debug', 'Raw PRS data received', 'prs_chart', {
+      userId,
+      dataLength: Array.isArray(rawData) ? rawData.length : 1
+    });
+
     // Handle both array and single object responses
     const items = Array.isArray(rawData) ? rawData : [rawData];
-    
+
     // Filter to get latest scores per disease (same logic as PRS display component)
     const diseaseMap = new Map();
-    
+
     items.forEach((item: any) => {
       const diseaseType = item.disease_type || 'Unknown';
       const calculatedAt = item.calculated_at || '1900-01-01';
       const itemId = item.id || 0;
-      
-      if (!diseaseMap.has(diseaseType) || 
-          calculatedAt > diseaseMap.get(diseaseType).calculated_at ||
-          (calculatedAt === diseaseMap.get(diseaseType).calculated_at && itemId > diseaseMap.get(diseaseType).id)) {
+
+      if (!diseaseMap.has(diseaseType) ||
+        calculatedAt > diseaseMap.get(diseaseType).calculated_at ||
+        (calculatedAt === diseaseMap.get(diseaseType).calculated_at && itemId > diseaseMap.get(diseaseType).id)) {
         diseaseMap.set(diseaseType, item);
       }
     });
-    
+
     // Transform filtered data to chart format
     const chartData = Array.from(diseaseMap.values()).map((item: any) => ({
       condition: item.disease_type ? item.disease_type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Unknown Condition',
       score: item.score || 0,
       percentile: item.percentile || Math.round((item.score || 0) * 100),
-      riskLevel: (item.risk_level ? item.risk_level.toLowerCase() : 
-                  ((item.score || 0) > 0.7 ? 'high' : (item.score || 0) > 0.4 ? 'moderate' : 'low')) as 'low' | 'moderate' | 'high',
+      riskLevel: (item.risk_level ? item.risk_level.toLowerCase() :
+        ((item.score || 0) > 0.7 ? 'high' : (item.score || 0) > 0.4 ? 'moderate' : 'low')) as 'low' | 'moderate' | 'high',
       populationAverage: 0.50 // Standard population average baseline
     })).sort((a, b) => b.score - a.score); // Sort by score descending
-    
-    console.log('Processed chart data:', chartData);
+
+    logAnalysis('info', 'Processed chart data successfully', 'prs_chart', {
+      userId,
+      totalConditions: chartData.length
+    });
     return chartData;
-    
+
   } catch (error) {
-    console.error('Error fetching PRS chart data:', error);
+    logAnalysis('error', 'Error fetching PRS chart data', 'prs_chart', {
+      userId,
+      error: error.message
+    });
     return []; // Return empty array on error
   }
 };
@@ -112,10 +122,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <span className="font-medium">Population Average:</span> {data.populationAverage.toFixed(2)}
         </p>
         <p className="text-sm mt-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium text-white ${
-            data.riskLevel === 'high' ? 'bg-red-500' :
-            data.riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-green-500'
-          }`}>
+          <span className={`px-2 py-1 rounded text-xs font-medium text-white ${data.riskLevel === 'high' ? 'bg-red-500' :
+              data.riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-green-500'
+            }`}>
             {data.riskLevel.toUpperCase()} RISK
           </span>
         </p>
@@ -218,7 +227,7 @@ export function PrsChart({ userId }: PrsChartProps) {
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              
+
               {/* Population Average Line */}
               <Bar
                 dataKey="populationAverage"
@@ -226,7 +235,7 @@ export function PrsChart({ userId }: PrsChartProps) {
                 name="Population Average"
                 radius={[2, 2, 0, 0]}
               />
-              
+
               {/* Your Score Bars */}
               <Bar
                 dataKey="score"
@@ -240,7 +249,7 @@ export function PrsChart({ userId }: PrsChartProps) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
+
         <div className="mt-4 flex flex-wrap gap-4 justify-center text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-500 rounded"></div>

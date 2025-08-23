@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Activity, AlertTriangle, CheckCircle, Info, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
+import { logAnalysis } from '@/lib/logger';
 
 interface DiabetesInputs {
   hba1c: number | null;
@@ -34,7 +35,7 @@ interface DiabetesAssessmentProps {
 const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, geneticData }) => {
   const { user } = useAuthStore();
   const actualUserId = userId || user?.id?.toString() || '';
-  
+
   const [inputs, setInputs] = useState<DiabetesInputs>({
     hba1c: null,
     fastingGlucose: null,
@@ -50,7 +51,7 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
   useEffect(() => {
     const checkGeneticData = async () => {
       if (!actualUserId) return;
-      
+
       try {
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${actualUserId}`);
         if (response.ok) {
@@ -58,7 +59,9 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
           setHasGeneticData(Array.isArray(data) ? data.length > 0 : !!data);
         }
       } catch (error) {
-        console.log('No genetic data available yet');
+        logAnalysis('info', 'No genetic data available yet', 'diabetes_assessment', {
+          userId: actualUserId
+        });
         setHasGeneticData(false);
       }
     };
@@ -141,10 +144,10 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
         const response = await fetch(`http://localhost:8000/api/direct/prs/user/${actualUserId}`);
         if (response.ok) {
           const prsData = await response.json();
-          const diabetesPRS = Array.isArray(prsData) 
+          const diabetesPRS = Array.isArray(prsData)
             ? prsData.find(item => item.disease_type?.toLowerCase().includes('diabetes'))
             : prsData;
-          
+
           if (diabetesPRS && diabetesPRS.score) {
             geneticScore = Math.round(diabetesPRS.score * 100);
             if (geneticScore > 70) {
@@ -153,16 +156,18 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
           }
         }
       } catch (error) {
-        console.log('Using default genetic component');
+        logAnalysis('info', 'Using default genetic component', 'diabetes_assessment', {
+          userId: actualUserId
+        });
       }
     }
 
     // Calculate overall risk (weighted combination)
     const overallRisk = Math.min(Math.round((clinicalScore * 0.7) + (geneticScore * 0.3)), 100);
-    
+
     let riskLevel: 'low' | 'moderate' | 'high' | 'very-high';
     if (overallRisk >= 80) riskLevel = 'very-high';
-    else if (overallRisk >= 60) riskLevel = 'high'; 
+    else if (overallRisk >= 60) riskLevel = 'high';
     else if (overallRisk >= 35) riskLevel = 'moderate';
     else riskLevel = 'low';
 
@@ -171,7 +176,7 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
       recommendations.unshift("Schedule immediate appointment with healthcare provider");
       recommendations.push("Consider continuous glucose monitoring");
     }
-    
+
     if (overallRisk >= 35) {
       recommendations.push("Increase physical activity to 150+ minutes/week");
       recommendations.push("Follow Mediterranean or DASH diet pattern");
@@ -197,7 +202,10 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
       const calculatedResult = await calculateDiabetesRisk();
       setResult(calculatedResult);
     } catch (error) {
-      console.error('Error calculating diabetes risk:', error);
+      logAnalysis('error', 'Error calculating diabetes risk', 'diabetes_assessment', {
+        userId: actualUserId,
+        error: error.message
+      });
     } finally {
       setIsCalculating(false);
     }
@@ -231,7 +239,7 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
             Enter your clinical data for accurate diabetes risk prediction
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* Genetic Data Status */}
           <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
@@ -329,8 +337,8 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
             </div>
           </div>
 
-          <Button 
-            onClick={handleCalculate} 
+          <Button
+            onClick={handleCalculate}
             disabled={!isFormValid || isCalculating}
             className="w-full"
           >
@@ -350,7 +358,7 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
               </Badge>
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             {/* Warning Flags */}
             {result.warningFlags.length > 0 && (
@@ -388,7 +396,7 @@ const DiabetesAssessment: React.FC<DiabetesAssessmentProps> = ({ userId, genetic
                   Based on HbA1c, glucose, BMI, age
                 </div>
               </div>
-              
+
               <div className="bg-purple-50 p-4 rounded-lg text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {result.geneticComponent}%

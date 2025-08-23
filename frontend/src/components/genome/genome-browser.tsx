@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Loader2, Play, Pause, Zap, Dna2, RotateCcw, ZoomIn, ZoomOut, Filter } from 'lucide-react';
 import * as d3 from 'd3';
+import { logAnalysis } from '@/lib/logger';
 
 interface Variant {
   id: number;
@@ -174,7 +175,7 @@ const GenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
           </div>
         </div>
         <div ref={containerRef} className="w-full h-[500px] bg-white rounded-lg border-2 border-gray-200 shadow-inner"></div>
-        
+
         {/* Summary statistics */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -205,8 +206,10 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
   const height = container.clientHeight || 400;
   const margins = { top: 40, right: 80, bottom: 60, left: 80 };
 
-  console.log(`Drawing genome browser with ${variants.length} variants`);
-  console.log('Sample variant:', variants[0]);
+  logAnalysis('debug', 'Drawing genome browser', 'genome_visualization', {
+    totalVariants: variants.length,
+    sampleVariant: variants[0]
+  });
 
   // Clear previous content
   d3.select(container).select('svg').remove();
@@ -230,7 +233,10 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
       return a.localeCompare(b);
     });
 
-  console.log('Chromosomes:', chromosomes);
+  logAnalysis('debug', 'Chromosomes processed', 'genome_visualization', {
+    totalChromosomes: chromosomes.length,
+    chromosomes: chromosomes
+  });
 
   // Create scales
   const xScale = d3.scaleLog()
@@ -326,7 +332,7 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
     .attr('stroke-width', d => diseaseSnps.includes(d.variant_id) ? 2 : 0)
     .style('cursor', 'pointer')
     .style('opacity', 0.8)
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function (event, d) {
       d3.select(this).style('opacity', 1).attr('r', sizeScale(d.quality) + 2);
       tooltip.style('opacity', 1)
         .html(`
@@ -341,7 +347,7 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
         .style('left', (event.pageX + 10) + 'px')
         .style('top', (event.pageY - 10) + 'px');
     })
-    .on('mouseout', function(event, d) {
+    .on('mouseout', function (event, d) {
       d3.select(this).style('opacity', 0.8).attr('r', sizeScale(d.quality));
       tooltip.style('opacity', 0);
     });
@@ -387,7 +393,10 @@ function drawGenomeBrowser(container: HTMLDivElement, variants: Variant[]) {
     .style('fill', '#666')
     .text('Regular variant');
 
-  console.log('Genome browser visualization complete');
+  logAnalysis('info', 'Genome browser visualization complete', 'genome_visualization', {
+    totalVariants: variants.length,
+    totalChromosomes: chromosomes.length
+  });
 }
 
 export default GenomeBrowser;

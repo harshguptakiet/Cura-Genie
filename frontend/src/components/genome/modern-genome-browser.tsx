@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Dna, Activity, Target, TrendingUp, BarChart3, MapPin } from 'lucide-react';
+import { logAnalysis } from '@/lib/logger';
 
 interface Variant {
   id: number;
@@ -25,22 +26,27 @@ interface GenomeBrowserProps {
 
 // API function to fetch real genomic variants
 const fetchGenomicVariants = async (userId: string): Promise<Variant[]> => {
-  console.log('🔍 Fetching genomic variants for user:', userId);
   const url = `http://127.0.0.1:8000/api/genomic/variants/${userId}`;
-  console.log('🌐 API URL:', url);
-  
+
+  logAnalysis('debug', 'Fetching genomic variants', 'genomic_variants', { userId, url });
+
   const response = await fetch(url);
-  console.log('📡 API Response status:', response.status);
-  
+
   if (!response.ok) {
-    console.error('❌ API response not ok:', response.status, response.statusText);
+    logAnalysis('error', 'Failed to fetch genomic variants', 'genomic_variants', {
+      userId,
+      status: response.status,
+      statusText: response.statusText
+    });
     throw new Error(`Failed to fetch genomic variants: ${response.status}`);
   }
-  
+
   const data = await response.json();
-  console.log('✅ API Response data:', data);
-  console.log('📊 Total variants received:', data.length);
-  
+  logAnalysis('info', 'Genomic variants fetched successfully', 'genomic_variants', {
+    userId,
+    totalVariants: data.length
+  });
+
   return data;
 };
 
@@ -141,7 +147,7 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
             {/* Chart Area */}
             <div className="bg-white rounded-xl p-6 shadow-sm border">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
+
                 {/* Bar Chart - Variants per Chromosome */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Variants per Chromosome</h3>
@@ -151,13 +157,13 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
                       const maxVariants = Math.max(...chromosomes.map(c => variantsByChromosome[c]?.length || 0));
                       const width = (chrVariants.length / maxVariants) * 100;
                       const diseaseCount = chrVariants.filter(v => diseaseSnps.includes(v.variant_id)).length;
-                      
+
                       return (
                         <div key={chr} className="flex items-center gap-3">
                           <div className="w-12 text-sm font-medium text-gray-600">Chr {chr}</div>
                           <div className="flex-1 relative">
                             <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg transition-all duration-500 flex items-center justify-end pr-2"
                                 style={{ width: `${width}%` }}
                               >
@@ -202,13 +208,13 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
                         return v.quality < 20;
                       }).length;
                       const percentage = ((count / variants.length) * 100);
-                      
+
                       return (
                         <div key={range} className="flex items-center gap-3">
                           <div className="w-16 text-sm font-medium text-gray-600">Q {range}</div>
                           <div className="flex-1 relative">
                             <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className={`h-full bg-gradient-to-r ${color} rounded-full transition-all duration-700 flex items-center justify-center`}
                                 style={{ width: `${percentage}%` }}
                               >
@@ -229,7 +235,7 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Chart Legend */}
               <div className="mt-6 pt-4 border-t border-gray-100">
                 <div className="flex flex-wrap items-center gap-6 text-sm">
@@ -265,7 +271,7 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -277,7 +283,7 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -289,7 +295,7 @@ const ModernGenomeBrowser: React.FC<GenomeBrowserProps> = ({ userId }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logAuth, logger } from '@/lib/logger'
 
 export interface User {
   id: number
@@ -50,11 +51,12 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string, rememberMe: boolean = false) => {
         set({ isLoading: true })
         try {
-          console.log('=== LOGIN DEBUGGING START ===')
-          console.log('API_BASE_URL:', API_BASE_URL)
-          console.log('Attempting login with email:', email)
-          console.log('Full URL:', `${API_BASE_URL}/api/auth/login`)
-          
+          logAuth('debug', 'Login process started', undefined, {
+            apiUrl: API_BASE_URL,
+            email: email,
+            endpoint: '/api/auth/login'
+          })
+
           const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
@@ -63,12 +65,18 @@ export const useAuthStore = create<AuthState>()(
             body: JSON.stringify({ email, password, remember_me: rememberMe }),
           })
 
-          console.log('Login response status:', response.status)
-          console.log('Login response headers:', Object.fromEntries(response.headers.entries()))
-          
+          logAuth('debug', 'Login response received', undefined, {
+            status: response.status,
+            statusText: response.statusText
+          })
+
           if (!response.ok) {
             const errorText = await response.text()
-            console.error('Login error response:', errorText)
+            logAuth('error', 'Login failed', undefined, {
+              status: response.status,
+              errorText,
+              endpoint: '/api/auth/login'
+            })
             let errorMessage = 'Login failed'
             try {
               const error = JSON.parse(errorText)
@@ -80,8 +88,11 @@ export const useAuthStore = create<AuthState>()(
           }
 
           const data = await response.json()
-          console.log('Login successful:', data)
-          
+          logAuth('info', 'Login successful', undefined, {
+            userId: data.user_id,
+            role: data.role
+          })
+
           // Create user object from login response
           const user: User = {
             id: data.user_id,
@@ -92,8 +103,8 @@ export const useAuthStore = create<AuthState>()(
             is_verified: true,
             created_at: new Date().toISOString()
           }
-          
-          set({ 
+
+          set({
             token: data.access_token,
             user: user,
             isAuthenticated: true,
@@ -104,10 +115,10 @@ export const useAuthStore = create<AuthState>()(
           try {
             await get().fetchUserData()
           } catch (error) {
-            console.warn('Failed to fetch additional user data, using login data:', error)
+            logAuth('warn', 'Failed to fetch additional user data, using login data', undefined, { error: error.message })
           }
         } catch (error) {
-          console.error('Login error:', error)
+          logAuth('error', 'Login process failed', undefined, { error: error.message })
           set({ isLoading: false })
           throw error
         }
@@ -128,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData: RegisterData) => {
         set({ isLoading: true })
         try {
-          console.log('Attempting registration with:', userData.email)
+          logAuth('debug', 'Registration process started', undefined, { email: userData.email })
           const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
@@ -137,11 +148,15 @@ export const useAuthStore = create<AuthState>()(
             body: JSON.stringify(userData),
           })
 
-          console.log('Registration response status:', response.status)
-          
+          logAuth('debug', 'Registration response received', undefined, { status: response.status })
+
           if (!response.ok) {
             const errorText = await response.text()
-            console.error('Registration error response:', errorText)
+            logAuth('error', 'Registration failed', undefined, {
+              status: response.status,
+              errorText,
+              endpoint: '/api/auth/register'
+            })
             let errorMessage = 'Registration failed'
             try {
               const error = JSON.parse(errorText)
@@ -153,12 +168,12 @@ export const useAuthStore = create<AuthState>()(
           }
 
           const user = await response.json()
-          console.log('Registration successful:', user)
-          
+          logAuth('info', 'Registration successful', undefined, { userId: user.id })
+
           // After registration, automatically login
           await get().login(userData.email, userData.password)
         } catch (error) {
-          console.error('Registration error:', error)
+          logAuth('error', 'Registration process failed', undefined, { error: error.message })
           set({ isLoading: false })
           throw error
         }
@@ -171,7 +186,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isLoading: false,
         })
-        
+
         // Clear token from API calls
         fetch(`${API_BASE_URL}/api/auth/logout`, {
           method: 'POST',
@@ -246,7 +261,7 @@ export const useAuthStore = create<AuthState>()(
             set({ user })
           }
         } catch (error) {
-          console.error('Failed to fetch user data:', error)
+          logAuth('error', 'Failed to fetch user data', undefined, { error: error.message })
         }
       },
     }),

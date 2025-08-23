@@ -10,6 +10,7 @@ import { Progress } from './progress';
 import { Alert, AlertDescription } from './alert';
 import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { logUpload } from '@/lib/logger';
 
 interface FileUploadProps {
   onUploadSuccess?: (data: any) => void;
@@ -29,26 +30,31 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
     formData.append('user_id', userId);
 
     const xhr = new XMLHttpRequest();
-    
+
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const progress = Math.round((event.loaded / event.total) * 100);
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
-          console.log('Upload response:', response);
+          logUpload('info', 'Upload response received', 'genomic_upload', {
+            fileId: response.id,
+            message: response.message
+          });
           resolve({
             success: true,
             message: response.message || 'File uploaded successfully',
             fileId: response.id ? response.id.toString() : `file_${Date.now()}`
           });
         } catch (e) {
-          console.error('Error parsing response:', e);
+          logUpload('error', 'Error parsing response', 'genomic_upload', {
+            error: e.message
+          });
           resolve({
             success: true,
             message: 'File uploaded successfully',
@@ -67,29 +73,35 @@ const uploadGenomicFile = async (file: File, userId: string, token: string, onPr
             }
           }
         } catch (e) {
-          console.error('Error parsing error response:', e);
+          logUpload('error', 'Error parsing error response', 'genomic_upload', {
+            error: e.message,
+            status: xhr.status
+          });
           errorMessage = `Upload failed with status ${xhr.status}`;
         }
-        console.error('Upload failed:', xhr.status, xhr.responseText);
+        logUpload('error', 'Upload failed', 'genomic_upload', {
+          status: xhr.status,
+          responseText: xhr.responseText
+        });
         reject(new Error(errorMessage));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
-      console.error('Upload network error');
+      logUpload('error', 'Upload network error', 'genomic_upload', {});
       reject(new Error('Upload failed due to network error'));
     });
-    
+
     // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     // Use the unauthenticated test endpoint for uploads
     xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
-    
+
     // If you switch to the authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }
-    
+
     xhr.send(formData);
   });
 };
@@ -101,7 +113,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const userId = user?.id?.toString() || "1";
   const authToken = token || "";
 
@@ -109,29 +121,31 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     mutationFn: (file: File) => uploadGenomicFile(file, userId, authToken, setUploadProgress),
     onSuccess: (data) => {
       toast.success('File uploaded successfully!');
-      
+
       // Reset all upload-related state completely
       setSelectedFile(null);
       setUploadProgress(0);
-      
+
       // Clear file input element
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
         fileInputRef.current.files = null;
       }
-      
+
       // Reset the mutation state to allow new uploads
       setTimeout(() => {
         uploadMutation.reset();
       }, 100);
-      
+
       onUploadSuccess?.(data);
     },
     onError: (error: any) => {
-      console.error('Upload error:', error);
+      logUpload('error', 'Upload error', 'genomic_upload', {
+        error: error.message
+      });
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);
-      
+
       // Reset mutation state on error too
       setTimeout(() => {
         uploadMutation.reset();
@@ -145,12 +159,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
       // Validate file type
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -167,12 +181,12 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     if (file) {
       const validExtensions = ['.vcf', '.fastq', '.fq', '.vcf.gz', '.fastq.gz'];
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-      
+
       if (!isValidFile) {
         toast.error('Please select a valid genomic file (VCF or FASTQ)');
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -186,16 +200,16 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
     setSelectedFile(null);
     setUploadProgress(0);
     setShowSuccessMessage(false);
-    
+
     // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.files = null;
     }
-    
+
     // Reset mutation state
     uploadMutation.reset();
-    
+
     toast.info('Ready for new file upload');
   };
 

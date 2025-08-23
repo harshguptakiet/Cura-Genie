@@ -10,6 +10,7 @@ import { Progress } from './progress';
 import { Alert, AlertDescription } from './alert';
 import { Upload, CheckCircle, AlertCircle, FileText, Stethoscope } from 'lucide-react';
 import { toast } from 'sonner';
+import { logUpload } from '@/lib/logger';
 
 interface ClinicalFileUploadProps {
   onUploadSuccess?: (data: any) => void;
@@ -24,10 +25,10 @@ interface UploadResponse {
 
 // API upload function for clinical files
 const uploadClinicalFile = async (
-  file: File, 
-  userId: string, 
-  assessmentType: string, 
-  token: string, 
+  file: File,
+  userId: string,
+  assessmentType: string,
+  token: string,
   onProgress: (progress: number) => void
 ): Promise<UploadResponse> => {
   return new Promise((resolve, reject) => {
@@ -37,26 +38,31 @@ const uploadClinicalFile = async (
     formData.append('assessment_type', assessmentType);
 
     const xhr = new XMLHttpRequest();
-    
+
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const progress = Math.round((event.loaded / event.total) * 100);
         onProgress(progress);
       }
     });
-    
+
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
-          console.log('Clinical file upload response:', response);
+          logUpload('info', 'Clinical file upload response received', 'clinical_upload', {
+            fileId: response.id,
+            message: response.message
+          });
           resolve({
             success: true,
             message: response.message || 'Clinical file uploaded successfully',
             fileId: response.id ? response.id.toString() : `clinical_file_${Date.now()}`
           });
         } catch (e) {
-          console.error('Error parsing response:', e);
+          logUpload('error', 'Error parsing response', 'clinical_upload', {
+            error: e.message
+          });
           resolve({
             success: true,
             message: 'Clinical file uploaded successfully',
@@ -75,29 +81,35 @@ const uploadClinicalFile = async (
             }
           }
         } catch (e) {
-          console.error('Error parsing error response:', e);
+          logUpload('error', 'Error parsing error response', 'clinical_upload', {
+            error: e.message,
+            status: xhr.status
+          });
           errorMessage = `Upload failed with status ${xhr.status}`;
         }
-        console.error('Clinical file upload failed:', xhr.status, xhr.responseText);
+        logUpload('error', 'Clinical file upload failed', 'clinical_upload', {
+          status: xhr.status,
+          responseText: xhr.responseText
+        });
         reject(new Error(errorMessage));
       }
     });
-    
+
     xhr.addEventListener('error', () => {
-      console.error('Clinical file upload network error');
+      logUpload('error', 'Clinical file upload network error', 'clinical_upload', {});
       reject(new Error('Upload failed due to network error'));
     });
-    
+
     // Use backend base URL from environment to avoid localhost/mixed-content/CORS issues
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
     // If you implement clinical upload server route, update the path accordingly:
     xhr.open('POST', `${API_BASE_URL}/api/local-upload/genomic-data-test`);
-    
+
     // If you switch to an authenticated endpoint, add the token header:
     // if (token) {
     //   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     // }
-    
+
     xhr.send(formData);
   });
 };
@@ -149,7 +161,7 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const userId = user?.id?.toString() || "1";
   const authToken = token || "";
   const config = getAssessmentConfig(assessmentType);
@@ -159,29 +171,31 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
     mutationFn: (file: File) => uploadClinicalFile(file, userId, assessmentType, authToken, setUploadProgress),
     onSuccess: (data) => {
       toast.success('Clinical file uploaded successfully!');
-      
+
       // Reset all upload-related state completely
       setSelectedFile(null);
       setUploadProgress(0);
-      
+
       // Clear file input element
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
         fileInputRef.current.files = null;
       }
-      
+
       // Reset the mutation state to allow new uploads
       setTimeout(() => {
         uploadMutation.reset();
       }, 100);
-      
+
       onUploadSuccess?.(data);
     },
     onError: (error: any) => {
-      console.error('Clinical file upload error:', error);
+      logUpload('error', 'Clinical file upload error', 'clinical_upload', {
+        error: error.message
+      });
       toast.error(error.message || 'Upload failed. Please try again.');
       setUploadProgress(0);
-      
+
       // Reset mutation state on error too
       setTimeout(() => {
         uploadMutation.reset();
@@ -195,12 +209,12 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
       // Validate file type based on assessment type
       const validExtensions = config.fileExtensions.split(',');
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext.trim()));
-      
+
       if (!isValidFile) {
         toast.error(`Please select a valid file format: ${config.acceptedFormats}`);
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -217,12 +231,12 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
     if (file) {
       const validExtensions = config.fileExtensions.split(',');
       const isValidFile = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext.trim()));
-      
+
       if (!isValidFile) {
         toast.error(`Please select a valid file format: ${config.acceptedFormats}`);
         return;
       }
-      
+
       setSelectedFile(file);
     }
   };
@@ -235,16 +249,16 @@ export function ClinicalFileUpload({ onUploadSuccess, assessmentType = 'general'
     // Complete reset function
     setSelectedFile(null);
     setUploadProgress(0);
-    
+
     // Clear file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.files = null;
     }
-    
+
     // Reset mutation state
     uploadMutation.reset();
-    
+
     toast.info('Ready for new file upload');
   };
 
