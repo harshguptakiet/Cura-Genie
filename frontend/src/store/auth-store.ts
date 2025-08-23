@@ -37,7 +37,7 @@ export interface RegisterData {
   role?: 'patient' | 'doctor' | 'admin'
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -108,7 +108,16 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error('Login error:', error)
+          console.error('Error stack:', error.stack)
           set({ isLoading: false })
+          
+          // Provide more specific error messages
+          if (error instanceof TypeError) {
+            if (error.message.includes('fetch')) {
+              throw new Error('Cannot connect to server. Please make sure the backend is running on port 8000.')
+            }
+          }
+          
           throw error
         }
       },
