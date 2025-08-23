@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: curagenie-backend
+    env: python
+    buildCommand: "pip install -r requirements-minimal.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        value: "sqlite:///./curagenie.db"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "https://cura-genie.vercel.app,https://*.vercel.app"

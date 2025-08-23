@@ -1,24 +1,28 @@
 # Core FastAPI Dependencies
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-multipart==0.0.6
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-multipart>=0.0.6
 
 # Database
-sqlalchemy==2.0.23
+sqlalchemy>=2.0.0
 
 # Environment & Configuration
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
 
 # Web & HTTP
-requests==2.31.0
-websockets==12.0
+requests>=2.31.0
+websockets>=12.0
 
 # Authentication
-bcrypt==4.0.1
-passlib==1.7.4
-python-jose[cryptography]==3.3.0
+bcrypt>=4.0.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+PyJWT>=2.8.0
 
-# File Processing (minimal)
-Pillow==10.1.0
+# Supabase integration
+supabase>=2.0.0
+
+# Email validation
+email-validator>=2.0.0
