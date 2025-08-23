@@ -38,14 +38,14 @@ const fetchRecommendations = async (userId: string): Promise<Recommendation[]> =
         message: 'Generate personalized health recommendations based on my genetic analysis results and PRS scores. Please provide specific, actionable recommendations with categories and priorities.'
       })
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to generate recommendations');
     }
-    
+
     const data = await response.json();
     const aiResponse = data.response || data.message || 'No recommendations available';
-    
+
     // Parse AI response into structured recommendations
     // For now, return mock structured data since AI response is text
     return [
@@ -143,9 +143,9 @@ export function RecommendationsDisplay({ userId }: RecommendationsDisplayProps) 
 
   if (error) {
     // Check if it's a 404 error (no data available)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading recommendations';
     const isNoData = errorMessage.includes('404') || errorMessage.includes('Failed to fetch');
-    
+
     return (
       <Card>
         <CardHeader>
@@ -155,7 +155,7 @@ export function RecommendationsDisplay({ userId }: RecommendationsDisplayProps) 
         <CardContent>
           <Alert variant={isNoData ? "default" : "destructive"}>
             <AlertDescription>
-              {isNoData 
+              {isNoData
                 ? "No genomic data found. Upload a VCF file to receive personalized health recommendations based on your genetic profile."
                 : "Failed to load recommendations. Please try again later."
               }
@@ -201,13 +201,13 @@ export function RecommendationsDisplay({ userId }: RecommendationsDisplayProps) 
                         {recommendation.priority.toUpperCase()}
                       </Badge>
                     </div>
-                    
+
                     <div className="bg-white rounded-lg p-4 border border-gray-100">
                       <p className="text-gray-700 leading-relaxed">
                         {recommendation.description}
                       </p>
                     </div>
-                    
+
                     {recommendation.basedOn.length > 0 && (
                       <div className="bg-blue-50 rounded-lg p-4">
                         <h4 className="font-semibold text-sm text-blue-900 mb-3 flex items-center gap-2">
@@ -224,7 +224,7 @@ export function RecommendationsDisplay({ userId }: RecommendationsDisplayProps) 
                         </ul>
                       </div>
                     )}
-                    
+
                     {recommendation.actionItems.length > 0 && (
                       <div className="bg-green-50 rounded-lg p-4">
                         <h4 className="font-semibold text-sm text-green-900 mb-3 flex items-center gap-2">
@@ -241,7 +241,7 @@ export function RecommendationsDisplay({ userId }: RecommendationsDisplayProps) 
                         </ul>
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="capitalize bg-white">

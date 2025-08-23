@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { uploadVcf } from "@/lib/uploadVcf";
+import { VCFUploadResult, UploadSuccessData } from "@/types";
+import { handleError, createUploadError, getUserFriendlyMessage } from "@/lib/error-handling";
 
 export default function VcfUploader() {
   const [status, setStatus] = useState<string>("");
@@ -14,10 +16,21 @@ export default function VcfUploader() {
     try {
       setUploading(true);
       setStatus("Uploading...");
-      const { path } = await uploadVcf(file);
-      setStatus(`Uploaded to: ${path}`);
-    } catch (err: any) {
-      setStatus(`Upload failed: ${err?.message ?? "Unknown error"}`);
+
+      const result: VCFUploadResult = await uploadVcf(file);
+
+      if (result.upload_status === 'success') {
+        setStatus(`Uploaded to: ${result.path}`);
+      } else {
+        throw new Error(result.error_message || 'Upload failed');
+      }
+    } catch (error: unknown) {
+      const appError = handleError(error);
+      const userMessage = getUserFriendlyMessage(appError);
+      setStatus(`Upload failed: ${userMessage}`);
+
+      // Log the error for debugging
+      console.error('VCF upload error:', appError);
     } finally {
       setUploading(false);
     }
