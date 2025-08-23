@@ -29,6 +29,37 @@ interface PrsChartProps {
   userId: string;
 }
 
+// Define proper interfaces for type safety
+interface PRSChartItem {
+  disease_type: string;
+  risk_score: number;
+  percentile: number;
+  category: string;
+  description?: string;
+  calculated_at: string;
+  id: number;
+  score: number;
+  risk_level?: string;
+}
+
+interface ChartDataPoint {
+  condition: string;
+  score: number;
+  category: string;
+  color: string;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    color: string;
+    payload: PrsChartData;
+  }>;
+  label?: string;
+}
+
 // Real API function to fetch PRS data from backend
 const fetchPrsChartData = async (userId: string): Promise<PrsChartData[]> => {
   try {
@@ -51,22 +82,22 @@ const fetchPrsChartData = async (userId: string): Promise<PrsChartData[]> => {
     const items = Array.isArray(rawData) ? rawData : [rawData];
     
     // Filter to get latest scores per disease (same logic as PRS display component)
-    const diseaseMap = new Map();
+    const diseaseMap = new Map<string, PRSChartItem>();
     
-    items.forEach((item: any) => {
+    items.forEach((item: PRSChartItem) => {
       const diseaseType = item.disease_type || 'Unknown';
       const calculatedAt = item.calculated_at || '1900-01-01';
       const itemId = item.id || 0;
       
       if (!diseaseMap.has(diseaseType) || 
-          calculatedAt > diseaseMap.get(diseaseType).calculated_at ||
-          (calculatedAt === diseaseMap.get(diseaseType).calculated_at && itemId > diseaseMap.get(diseaseType).id)) {
+          calculatedAt > diseaseMap.get(diseaseType)!.calculated_at ||
+          (calculatedAt === diseaseMap.get(diseaseType)!.calculated_at && itemId > diseaseMap.get(diseaseType)!.id)) {
         diseaseMap.set(diseaseType, item);
       }
     });
     
     // Transform filtered data to chart format
-    const chartData = Array.from(diseaseMap.values()).map((item: any) => ({
+    const chartData = Array.from(diseaseMap.values()).map((item: PRSChartItem): PrsChartData => ({
       condition: item.disease_type ? item.disease_type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Unknown Condition',
       score: item.score || 0,
       percentile: item.percentile || Math.round((item.score || 0) * 100),
@@ -97,7 +128,7 @@ const getRiskColor = (riskLevel: string) => {
   }
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
