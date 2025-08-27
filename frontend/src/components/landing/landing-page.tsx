@@ -41,12 +41,19 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isVisible, setIsVisible] = useState({})
+  const [isVisible, setIsVisible] = useState<{
+    home?: boolean
+    features?: boolean
+    services?: boolean
+    stats?: boolean
+    contact?: boolean
+  }>({})
 
   // Handle scroll effects
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY)
+
 
       // Update active section based on scroll position
       const sections = ['home', 'features', 'services', 'stats', 'contact']
@@ -178,8 +185,8 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrollY > 50
-          ? 'bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10'
-          : 'bg-transparent'
+        ? 'bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10'
+        : 'bg-transparent'
         }`}>
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-20">
@@ -207,8 +214,8 @@ export default function LandingPage() {
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
                   className={`relative text-sm font-medium transition-all duration-300 hover:scale-105 ${activeSection === item.id
-                      ? 'text-cyan-400'
-                      : 'text-gray-300 hover:text-white'
+                    ? 'text-cyan-400'
+                    : 'text-gray-300 hover:text-white'
                     }`}
                 >
                   {item.label}
@@ -643,160 +650,212 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Contact Info */}
-            <div className={`space-y-8 ${isVisible.contact ? 'animate-fade-in-left' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.2s' }}>
-              {[
-                {
-                  icon: MapPin,
-                  title: "Project Location",
-                  details: ["CuraGenie Platform", "AI-Powered Healthcare Solution"]
-                },
-                {
-                  icon: Phone,
-                  title: "Developer Contact",
-                  details: ["+91 8081434149", "Harsh Gupta - Full Stack Developer"]
-                },
-                {
-                  icon: Mail,
-                  title: "Email Support",
-                  details: ["guptasecularharsh@gmail.com", "Technical Support & Inquiries"]
-                }
-              ].map((contact, index) => (
-                <div key={index} className="flex items-start space-x-6 group">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 glow-cyan">
-                    <contact.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">
-                      {contact.title}
-                    </h4>
-                    {contact.details.map((detail, idx) => (
-                      <p key={idx} className="text-gray-300 text-lg group-hover:text-gray-200 transition-colors duration-300">
-                        {detail}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
 
-            {/* Contact Form */}
-            <div className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 glow-subtle ${isVisible.contact ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.4s' }}>
-              <form className="space-y-6" onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                const name = formData.get('name') as string
-                toast.success(`Thank you ${name}! Your message has been received.`, {
-                  description: "We'll get back to you within 24 hours.",
-                  duration: 3000,
-                })
-                e.currentTarget.reset()
-              }}>
-                <div>
-                  <label htmlFor="name" className="block text-lg font-semibold text-white mb-3">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter your full name"
-                  />
-                </div>
+          {/* Contact Form */}
+          <div className={`mx-auto max-w-2xl bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-110 glow-subtle ${isVisible.contact ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.4s' }}>
+            <form className="space-y-6" onSubmit={(e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              const name = formData.get('name') as string
+              toast.success(`Thank you ${name}! Your message has been received.`, {
+                description: "We'll get back to you within 24 hours.",
+                duration: 3000,
+              })
+              e.currentTarget.reset()
+            }}>
+              <div>
+                <label htmlFor="name" className="block text-lg font-semibold text-white mb-3">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your full name"
+                />
+              </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-lg font-semibold text-white mb-3">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter your email address"
-                  />
-                </div>
+              <div>
+                <label htmlFor="email" className="block text-lg font-semibold text-white mb-3">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your email address"
+                />
+              </div>
 
-                <div>
-                  <label htmlFor="message" className="block text-lg font-semibold text-white mb-3">
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm resize-none"
-                    placeholder="Tell us about your healthcare needs or questions..."
-                  />
-                </div>
+              <div>
+                <label htmlFor="message" className="block text-lg font-semibold text-white mb-3">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  rows={6}
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm resize-none"
+                  placeholder="Tell us about your healthcare needs or questions..."
+                />
+              </div>
 
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-lg font-semibold py-4 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
-                >
-                  <Mail className="mr-3 h-6 w-6" />
-                  Send Message
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Button>
-              </form>
-            </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-lg font-semibold py-6 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
+              >
+                <Mail className="mr-3 h-6 w-6" />
+                Send Message
+                <ArrowRight className="ml-3 h-6 w-6" />
+              </Button>
+            </form>
           </div>
+
         </div>
       </section>
 
+      
+
       {/* Footer */}
-      <footer className="py-16 px-6 bg-slate-900/80 backdrop-blur-xl border-t border-white/10 relative">
-        <div className="container mx-auto">
-          <div className="text-center space-y-6">
-            {/* Logo */}
-            <div className="flex items-center justify-center space-x-3 group">
-              <Brain className="h-12 w-12 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
-              <span className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+      <footer className="py-16 px-6 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 relative">
+        <div className="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+
+          {/* Logo + Description */}
+          <div className="md:col-span-2 space-y-4">
+            <div className="flex items-center space-x-3 group">
+              <Brain className="h-10 w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 CuraGenie
               </span>
             </div>
-
-            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+            <p className="text-gray-400 text-base">
               Revolutionizing healthcare through advanced AI technology and personalized medicine.
               Built with ❤️ for a healthier tomorrow.
             </p>
+          </div>
 
-            {/* Social Links */}
-            <div className="flex justify-center space-x-6">
-              {[
-                { icon: Mail, label: "Email", href: "mailto:guptasecularharsh@gmail.com" },
-                { icon: Phone, label: "Phone", href: "tel:+918081434149" },
-                { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/in/harsh-gupta-kiet/" }
-              ].map((social, index) => (
-                <div
-                  key={index}
-                  className="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center cursor-pointer hover:bg-cyan-500/20 hover:text-cyan-400 transition-all duration-300 hover:scale-110 glow-subtle"
-                  onClick={() => window.open(social.href, '_blank', 'noopener,noreferrer')}
+          {/* Feaures */}
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-4">Features</h4>
+            <ul className="space-y-3 text-gray-400">
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Brain className="w-4 h-4" />
+                  <span>AI Powered Analysis</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Activity className="w-4 h-4" />
+                  <span>Real-time Monitoring</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Smartphone className="w-4 h-4" />
+                  <span>Mobile-First Design</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Shield className="w-4 h-4" />
+                  <span>Data Security</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Users className="w-4 h-4" />
+                  <span>Collaborative Care</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Heart className="w-4 h-4" />
+                  <span>Personalized Experience</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Services */}
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-4">Services</h4>
+            <ul className="space-y-3 text-gray-400">
+              <li>
+                <a onClick={() => scrollToSection('services')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Activity className="w-4 h-4" />
+                  <span>Health Dashboard</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Brain className="w-4 h-4" />
+                  <span>AI Health Analytices</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Smartphone className="w-4 h-4" />
+                  <span>Mobile Health Plateform</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Socials */}
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-4">Socials</h4>
+            <ul className="space-y-3 text-gray-400">
+              <li>
+                <a href="mailto:guptasecularharsh@gmail.com" className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Mail className="w-4 h-4" />
+                  <span>Email Support</span>
+                </a>
+              </li>
+              <li>
+                <a href="tel:+918081434149" className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Phone className="w-4 h-4" />
+                  <span>Developer Contact</span>
+                </a>
+              </li>
+              <li>
+                <a href="https://linkedin.com/in/harsh-gupta-kiet/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <Linkedin className="w-4 h-4" />
+                  <span>LinkedIn</span>
+                </a>
+              </li>
+              <li>
+                <button
+                  onClick={() => scrollToSection('home')}
+                  className="flex items-center space-x-2 hover:text-cyan-400 transition"
                 >
-                  <social.icon className="h-6 w-6 text-gray-400 hover:text-cyan-400" />
-                </div>
-              ))}
-            </div>
-
-            {/* Copyright */}
-            <div className="border-t border-slate-700/50 pt-8 space-y-2">
-              <p className="text-gray-400 text-lg">
-                © 2025 CuraGenie - Developed by
-                <span className="text-cyan-400 font-semibold"> Harsh Gupta</span>.
-                All rights reserved.
-              </p>
-              <p className="text-gray-500 text-sm">
-                Built with cutting-edge technology: React, Next.js, TypeScript & AI/ML
-              </p>
-            </div>
+                  <MapPin className="w-4 h-4" />
+                  <span>Project Location</span>
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
+
+        {/* Bottom Bar */}
+        <div className="container mx-auto mt-12 border-t border-slate-700/50 pt-8 flex flex-col md:flex-row items-center justify-around text-gray-500 text-sm">
+          <p>
+            © 2025 CuraGenie - Developed by
+            <span className="text-cyan-400 font-semibold"> Harsh Gupta</span>.
+            All rights reserved.
+          </p>
+          <p className="mt-4 md:mt-0">
+            Built with cutting-edge technology: React, Next.js, TypeScript & AI/ML
+          </p>
+        </div>
       </footer>
+
+
 
       {/* Custom Styles */}
       <style jsx global>{`
