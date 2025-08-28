@@ -39,10 +39,6 @@ As a community, we strive to:
 ✅ Encourage open communication and constructive feedback.  
 ✅ Collaborate and celebrate achievements together.  
 
-<p align="center">
-  <img src="https://media.giphy.com/media/coxQHKASG60HrHtvkt/giphy.gif" width="300" alt="Teamwork GIF">
-</p>
-
 ---
 
 <p align="center">
@@ -59,19 +55,27 @@ The following behaviors are not tolerated in our community:
 ❌ Disruptive or non-inclusive behavior  
 
 <p align="center">
-  <img src="https://media.giphy.com/media/9Y5BbDSkSTiY8/giphy.gif" width="250" alt="Stop GIF">
+  <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3NzJpdTNlbWM2cWNmdWlicHQ4bGx1dmozeWp0Y2ExbHdxaGxoaGhnbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/HscDLzkO8EOTmgkhQP/giphy.gif" width="250" alt="Stop GIF">
 </p>
 
 ---
 
-## 🛠️ Reporting Issues  
+## 🌍 Cura-Genie Vision  
 
-If you experience or witness unacceptable behavior, please **report it**.  
+*Cura-Genie* seeks to create more than just an open-source solution—it is a collaborative effort to **empower individuals through technology and innovation**.  
+Every line of code, documentation improvement, or design contribution brings us closer to building impactful, accessible, and meaningful tools.  
 
-📧 Email: [your-email-here]  
-📌 Or raise it directly with the project maintainers.  
+By upholding these standards, we aim to inspire contributors to **learn, grow, and create lasting value together**.  
 
-All reports will be handled **discreetly and respectfully**.  
+---
+
+## 📜 Attribution  
+
+This Code of Conduct is adapted from the [Contributor Covenant (v3.0)](https://www.contributor-covenant.org/version/3/0/code_of_conduct/), with modifications tailored for Cura-Genie under the **GirlScript Summer of Code (GSSoC’25)**.  
+
+📌 Original work licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)  
+
+Enforcement guidelines inspired by [Mozilla’s code of conduct enforcement ladder](https://github.com/mozilla/diversity).  
 
 ---
 
