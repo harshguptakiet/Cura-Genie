@@ -184,10 +184,14 @@ export default function LandingPage() {
       )}
 
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${scrollY > 50
-        ? 'bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10'
-        : 'bg-transparent'
-        }`}>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 
+          ${scrollY > 50 
+            ? "bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10" 
+            : "bg-transparent md:bg-transparent bg-slate-900/80 backdrop-blur-md"
+          }`}
+      >
+
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
@@ -274,7 +278,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center px-6">
+      <section id="home" className="relative min-h-screen flex items-center justify-center px-6 pt-24 md:pt-0">
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Hero Text */}
@@ -393,7 +397,7 @@ export default function LandingPage() {
           <div className={`text-center mb-20 ${isVisible.features ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="features">
             <h2 className="text-5xl font-bold text-white mb-6">
               Revolutionary
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Features</span>
+              <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Features</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Experience the future of healthcare technology with our cutting-edge AI-powered platform
@@ -478,7 +482,7 @@ export default function LandingPage() {
           <div className={`text-center mb-20 ${isVisible.services ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="services">
             <h2 className="text-5xl font-bold text-white mb-6">
               Platform
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Services</span>
+              <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Services</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Comprehensive healthcare solutions designed to meet all your medical needs in one integrated platform
@@ -554,7 +558,7 @@ export default function LandingPage() {
           <div className={`text-center mb-20 ${isVisible.stats ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="stats">
             <h2 className="text-5xl font-bold text-white mb-6">
               Platform
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Statistics</span>
+              <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Statistics</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Trusted by healthcare providers and patients worldwide for delivering exceptional medical care
@@ -643,7 +647,7 @@ export default function LandingPage() {
           <div className={`text-center mb-20 ${isVisible.contact ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="contact">
             <h2 className="text-5xl font-bold text-white mb-6">
               Get In
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Touch</span>
+              <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Touch</span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Ready to revolutionize your healthcare experience? Let's connect and explore how CuraGenie can transform your medical journey.
