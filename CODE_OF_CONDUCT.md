@@ -1,88 +1,94 @@
-**Code of Conduct — Cura-Genie | GSSoC’25**
+# 🌱 Code of Conduct — Cura-Genie | GSSoC’25  
 
-***Our Commitment***
-
-Cura-Genie is dedicated to fostering an open, inclusive, and professional environment for every contributor. Whether you are just beginning your journey in open source or bringing years of expertise, we are committed to maintaining a culture of respect, collaboration, and continuous learning.
-
----
-
-***Community Values***
-
-We strive to build a strong and supportive community by:
-- Respecting diverse perspectives, experiences, and ideas.
-- Encouraging innovation and constructive discussions.
-- Communicating clearly, respectfully, and professionally.
-- Supporting new contributors through guidance and mentorship.
-- Working transparently and acknowledging the contributions of others.
+![Welcome Badge](https://img.shields.io/badge/Community-Welcoming-brightgreen?style=for-the-badge)  
+![Respect Badge](https://img.shields.io/badge/Respect-Essential-blue?style=for-the-badge)  
+![Inclusive Badge](https://img.shields.io/badge/Inclusive-Always-orange?style=for-the-badge)  
+![Collaboration Badge](https://img.shields.io/badge/Collaboration-Priority-yellow?style=for-the-badge)  
+![Fun Badge](https://img.shields.io/badge/Contributions-Fun-red?style=for-the-badge)  
 
 ---
 
-***Unacceptable Behavior***
+<p align="center">
+  <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjM4eTRlaWh4OWVpZWExeDFqdmdydzlqaXp4cmc2ZGxxdjllb2doMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hVEBWRInEvNOEVS18i/giphy.gif" width="350" alt="Commitment GIF">
+</p>
 
-The following behaviors will not be tolerated:
-- Discrimination based on gender, race, ability, or any personal attribute.
-- Harassment, intimidation, or disrespect in any form.
-- Spam, irrelevant promotion, or disruptive communication.
-- Misuse of intellectual property, plagiarism, or unethical practices.
-- Hostile conduct such as dismissiveness, exclusion, or gatekeeping.
+## ✨ Our Commitment  
 
----
+At **Cura-Genie**, we are committed to building an **inclusive, respectful, and empowering** space for everyone.  
+Whether you’re a **first-time contributor** or an **experienced developer**, you’re a valued part of this community.  
 
-***Scope of Application***
-
-This Code of Conduct applies across all Cura-Genie platforms and interactions, including but not limited to:
-- GSSoC’25 official communication channels.(Discord)
-- GitHub repositories, issues, and pull requests.
-- Social platforms where project-related discussions take place.
-- Community events, both virtual and in-person.
+💡 Our goal is to create an environment that fosters:  
+- Learning 📚  
+- Collaboration 🤝  
+- Innovation 🚀  
+- Respect ❤️  
 
 ---
 
-***Reporting Concerns***
+<p align="center">
+  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTV3bHJnbjIxa3Z2dDFjcDNvMWw1b29rY2h5am01aTA3ZndvbmpkYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/L1R1tvI9svkIWwpVYr/giphy.gif" width="350" alt="Community Values GIF">
+</p>
 
-If you observe or experience behavior that violates this Code of Conduct, please report it to:
-- Project Admins or mentors through official communication channels.
-- Cura-Genie maintainers via GitHub or other designated contacts.
+## 💡 Community Values  
 
-*All reports will be treated with confidentiality and addressed promptly.*
+We believe our strength comes from our people and their diverse experiences.  
+As a community, we strive to:  
 
----
-
-***Consequences of Misconduct***
-
-Violations of this Code of Conduct may result in:
-- Written warnings regarding inappropriate behavior.
-- Temporary suspension from participation in project activities.
-- Permanent removal from the project community if violations persist.
+✅ Show **respect and empathy** towards others.  
+✅ Welcome newcomers and support them.  
+✅ Encourage open communication and constructive feedback.  
+✅ Collaborate and celebrate achievements together.  
 
 ---
 
-***Contributor Expectations***
+<p align="center">
+  <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGpzZjJ6dHhjb2Zjc254bzhpcGI2NThhcnczcWVsejZvbnZxcTFnbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oriO6qJiXajN0TyDu/giphy.gif" width="350" alt="Unacceptable Behavior Intro GIF">
+</p>
 
-By contributing to Cura-Genie, you agree to:
-- Maintain professionalism in discussions and reviews.
-- Give credit to sources and respect intellectual property rights.
-- Keep contributions aligned with the project’s goals and purpose.
-- Be patient and supportive, especially with new contributors.
+## 🚫 Unacceptable Behavior  
 
----
+The following behaviors are not tolerated in our community:  
 
-***Cura-Genie Vision***
+❌ Harassment or discrimination of any kind  
+❌ Offensive comments or personal attacks  
+❌ Sharing inappropriate content  
+❌ Disruptive or non-inclusive behavior  
 
-*Cura-Genie* seeks to create more than just an open-source solution—it is a collaborative effort to empower individuals through technology and innovation. Every line of code, documentation improvement, or design contribution brings us closer to building impactful, accessible, and meaningful tools.
-
-By upholding these standards, we aim to inspire contributors to learn, grow, and create lasting value together.
-
----
-
-***Attribution***
-
-This Code of Conduct is adapted from the [Contributor Covenant (v3.0)](https://www.contributor-covenant.org/version/3/0/code_of_conduct/), *with modifications tailored for Cura-Genie under the GirlScript Summer of Code (GSSoC’25).*
-
-📌 Original work License under Creative Commons Attribution 4.0 International [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-
-Enforcement guidelines inspired by [Mozilla’s code of conduct enforcement ladder](https://github.com/mozilla/diversity).
+<p align="center">
+  <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3NzJpdTNlbWM2cWNmdWlicHQ4bGx1dmozeWp0Y2ExbHdxaGxoaGhnbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/HscDLzkO8EOTmgkhQP/giphy.gif" width="250" alt="Stop GIF">
+</p>
 
 ---
 
-**Together, let us make Cura-Genie a professional, inclusive, and impactful open-source community.**
+## 🌍 Cura-Genie Vision  
+
+*Cura-Genie* seeks to create more than just an open-source solution—it is a collaborative effort to **empower individuals through technology and innovation**.  
+Every line of code, documentation improvement, or design contribution brings us closer to building impactful, accessible, and meaningful tools.  
+
+By upholding these standards, we aim to inspire contributors to **learn, grow, and create lasting value together**.  
+
+---
+
+## 📜 Attribution  
+
+This Code of Conduct is adapted from the [Contributor Covenant (v3.0)](https://www.contributor-covenant.org/version/3/0/code_of_conduct/), with modifications tailored for Cura-Genie under the **GirlScript Summer of Code (GSSoC’25)**.  
+
+📌 Original work licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)  
+
+Enforcement guidelines inspired by [Mozilla’s code of conduct enforcement ladder](https://github.com/mozilla/diversity).  
+
+---
+
+## 🎉 Let’s Build Together  
+
+Let’s keep Cura-Genie a space where **everyone feels safe, inspired, and motivated** to contribute.  
+
+<p align="center">
+  <img src="https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif" width="350" alt="Celebration GIF">
+</p>
+
+<p align="center">
+  <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3NzJpdTNlbWM2cWNmdWlicHQ4bGx1dmozeWp0Y2ExbHdxaGxoaGhnbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/BACNp4PYgXACSPujxi/giphy.gif" width="350" alt="Together GIF">
+</p>
+
+---
