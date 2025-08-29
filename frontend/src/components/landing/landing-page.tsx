@@ -54,6 +54,7 @@ export default function LandingPage() {
     const handleScroll = () => {
       setScrollY(window.scrollY)
 
+
       // Update active section based on scroll position
       const sections = ['home', 'features', 'services', 'stats', 'contact']
       const current = sections.find(section => {
@@ -71,16 +72,14 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Handle mouse movement for glow effects (disable on mobile for performance)
+  // Handle mouse movement for glow effects
   useEffect(() => {
-    const isMobile = window.matchMedia("(max-width: 640px)").matches
-    if (!isMobile) {
-      const handleMouseMove = (e: MouseEvent) => {
-        setMousePosition({ x: e.clientX, y: e.clientY })
-      }
-      window.addEventListener('mousemove', handleMouseMove)
-      return () => window.removeEventListener('mousemove', handleMouseMove)
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY })
     }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
   // Intersection Observer for animations
@@ -115,6 +114,7 @@ export default function LandingPage() {
       description: 'Taking you to the login page',
       duration: 2000,
     })
+    // Navigate immediately after showing toast
     router.push('/auth/login')
   }
 
@@ -122,34 +122,35 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 relative overflow-x-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Gradient Orbs (scaled down on mobile) */}
+        {/* Gradient Orbs */}
         <div
-          className="absolute w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"
+          className="absolute w-96 h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"
           style={{
             left: mousePosition.x - 192 + 'px',
             top: mousePosition.y - 192 + 'px',
             transform: `translate(-50%, -50%) scale(${1 + scrollY * 0.0005})`
           }}
         />
-        <div className="absolute top-1/4 right-1/4 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-2xl animate-bounce" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 sm:w-80 h-64 sm:h-80 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-2xl animate-bounce" />
+        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl animate-pulse" />
 
-        {/* Floating Particles (reduced on mobile for performance) */}
+        {/* Floating Particles */}
         {Array.from({ length: 50 }).map((_, i) => {
-          const seed1 = (i * 9301 + 49297) % 233280
-          const seed2 = (i * 9301 + 49297 + 12345) % 233280
-          const seed3 = (i * 9301 + 49297 + 23456) % 233280
-          const seed4 = (i * 9301 + 49297 + 34567) % 233280
+          // Use seed-based random values to ensure consistency between server and client
+          const seed1 = (i * 9301 + 49297) % 233280;
+          const seed2 = (i * 9301 + 49297 + 12345) % 233280;
+          const seed3 = (i * 9301 + 49297 + 23456) % 233280;
+          const seed4 = (i * 9301 + 49297 + 34567) % 233280;
 
-          const left = (seed1 / 233280) * 100
-          const top = (seed2 / 233280) * 100
-          const delay = (seed3 / 233280) * 3
-          const duration = 2 + (seed4 / 233280) * 3
+          const left = (seed1 / 233280) * 100;
+          const top = (seed2 / 233280) * 100;
+          const delay = (seed3 / 233280) * 3;
+          const duration = 2 + (seed4 / 233280) * 3;
 
           return (
             <div
               key={i}
-              className="hidden sm:block absolute w-1 h-1 bg-cyan-400/40 rounded-full animate-pulse"
+              className="absolute w-1 h-1 bg-cyan-400/40 rounded-full animate-pulse"
               style={{
                 left: left + '%',
                 top: top + '%',
@@ -157,23 +158,23 @@ export default function LandingPage() {
                 animationDuration: duration + 's'
               }}
             />
-          )
+          );
         })}
       </div>
 
-      {/* Authenticated User Notification */}
+      {/* Authenticated User Notification - NO RED ALERT */}
       {isAuthenticated && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-500/95 backdrop-blur-lg text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl shadow-2xl border border-emerald-400/30 glow-emerald animate-slide-in-right">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="fixed top-6 right-6 z-50 bg-emerald-500/95 backdrop-blur-lg text-white px-6 py-3 rounded-2xl shadow-2xl border border-emerald-400/30 glow-emerald animate-slide-in-right">
+          <div className="flex items-center gap-3">
             <div className="relative">
-              <User className="h-4 sm:h-5 w-4 sm:w-5" />
-              <div className="absolute -top-1 -right-1 w-2 sm:w-3 h-2 sm:h-3 bg-green-400 rounded-full animate-ping" />
+              <User className="h-5 w-5" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
             </div>
-            <span className="font-medium text-sm sm:text-base">Welcome back!</span>
+            <span className="font-medium">Welcome back!</span>
             <Button
               size="sm"
               variant="ghost"
-              className="text-white hover:bg-white/20 px-2 sm:px-3 py-1 rounded-lg transition-all duration-300 hover:scale-105"
+              className="text-white hover:bg-white/20 px-3 py-1 rounded-lg transition-all duration-300 hover:scale-105"
               onClick={() => router.push('/dashboard')}
             >
               Dashboard →
@@ -184,28 +185,22 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 
-          ${scrollY > 50 
-            ? "bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10" 
-            : "bg-transparent md:bg-transparent bg-slate-900/80 backdrop-blur-md"
-          }`}
-      >
-
+        className="fixed top-0 left-0 right-0 z-40 transition-all duration-500 bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div className="flex items-center space-x-2 sm:space-x-3 group cursor-pointer" onClick={() => scrollToSection('home')}>
+            <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => scrollToSection('home')}>
               <div className="relative">
-                <Brain className="h-8 sm:h-10 w-8 sm:w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
+                <Brain className="h-10 w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
                 <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-300" />
               </div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300 ">
+              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">
                 CuraGenie
               </span>
             </div>
 
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+            <div className="hidden md:flex items-center space-x-8">
               {[
                 { id: 'home', label: 'Home' },
                 { id: 'features', label: 'Features' },
@@ -216,7 +211,7 @@ export default function LandingPage() {
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`relative text-xs lg:text-sm font-medium transition-all duration-300 hover:scale-105 ${activeSection === item.id
+                  className={`relative text-sm font-medium transition-all duration-300 hover:scale-105 ${activeSection === item.id
                     ? 'text-cyan-400'
                     : 'text-gray-300 hover:text-white'
                     }`}
@@ -229,7 +224,7 @@ export default function LandingPage() {
               ))}
               <Button
                 onClick={handleLaunchPlatform}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-4 lg:px-6 py-1.5 lg:py-2 rounded-xl shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105 glow-cyan text-sm"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105 glow-cyan"
               >
                 Launch Platform
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -246,75 +241,83 @@ export default function LandingPage() {
           </div>
 
           {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-slate-900/98 backdrop-blur-xl border-b border-white/10 animate-slide-down">
-              <div className="px-4 py-4 space-y-3">
-                {[
-                  { id: 'home', label: 'Home' },
-                  { id: 'features', label: 'Features' },
-                  { id: 'services', label: 'Services' },
-                  { id: 'stats', label: 'About' },
-                  { id: 'contact', label: 'Contact' }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-300 text-base"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <Button
-                  onClick={handleLaunchPlatform}
-                  className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-xl text-base py-3"
-                >
-                  Launch Platform
-                </Button>
-              </div>
-            </div>
-          )}
+{isMenuOpen && (
+  <div className="md:hidden absolute top-full left-0 right-0 px-4 animate-slide-down">
+    <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10  shadow-xl overflow-hidden">
+      <div className="flex flex-col items-center py-6 space-y-4">
+        {[
+          { id: 'home', label: 'Home' },
+          { id: 'features', label: 'Features' },
+          { id: 'services', label: 'Services' },
+          { id: 'stats', label: 'About' },
+          { id: 'contact', label: 'Contact' },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => scrollToSection(item.id)}
+            className={`w-full text-center py-2 text-base font-medium rounded-lg transition-all duration-300 ${
+              activeSection === item.id
+                ? 'text-cyan-400 bg-white/5'
+                : 'text-gray-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+
+        <Button
+          onClick={handleLaunchPlatform}
+          className="w-10/12 mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-full text-base py-3 shadow-lg"
+        >
+          Get Started
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </nav>
 
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center px-6 pt-24 md:pt-0">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Hero Text */}
-            <div className={`text-center lg:text-left space-y-6 ${isVisible.home ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="home">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight pt-[100px]">
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x ">
+            <div className={`text-center lg:text-left space-y-8 ${isVisible.home ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="home">
+              <h1 className="text-6xl lg:text-7xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                   CuraGenie
                 </span>
               </h1>
 
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white/90">
+              <h2 className="text-3xl lg:text-4xl font-semibold text-white/90">
                 AI-Powered Healthcare Platform
               </h2>
 
-              <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed max-w-xl lg:max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
                 Transform your healthcare experience with our intelligent medical platform
                 featuring AI diagnostics, virtual consultations, and personalized health insights.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center lg:justify-start pt-4">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start pt-4">
                 <Button
                   onClick={handleLaunchPlatform}
                   size="lg"
-                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
+                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-8 py-4 text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-110 glow-cyan"
                 >
-                  <Zap className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6 group-hover:animate-pulse" />
+                  <Zap className="mr-3 h-6 w-6 group-hover:animate-pulse" />
                   Launch Platform
-                  <ArrowRight className="ml-2 sm:ml-3 h-5 sm:h-6 w-5 sm:w-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
 
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={() => scrollToSection('features')}
-                  className="border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl backdrop-blur-sm transition-all duration-500 hover:scale-105"
+                  className="border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 px-8 py-4 text-lg rounded-2xl backdrop-blur-sm transition-all duration-500 hover:scale-105"
                 >
-                  <Play className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6" />
+                  <Play className="mr-3 h-6 w-6" />
                   Explore Features
                 </Button>
               </div>
@@ -322,88 +325,88 @@ export default function LandingPage() {
 
             {/* Hero Visual - Enhanced Medical Dashboard */}
             <div className={`relative ${isVisible.home ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate>
-              <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:scale-105 glow-subtle">
+              <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:scale-105 glow-subtle">
                 {/* Window Controls */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-slate-400 animate-pulse" />
-                  <div className="w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-yellow-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <div className="w-3 sm:w-4 h-3 sm:h-4 rounded-full bg-green-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-4 h-4 rounded-full bg-slate-400 animate-pulse" />
+                  <div className="w-4 h-4 rounded-full bg-yellow-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
                   <div className="flex-1" />
-                  <div className="flex items-center gap-1 sm:gap-2 text-gray-400">
-                    <Wifi className="h-3 sm:h-4 w-3 sm:w-4" />
-                    <Signal className="h-3 sm:h-4 w-3 sm:w-4" />
-                    <Battery className="h-3 sm:h-4 w-3 sm:w-4" />
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Wifi className="h-4 w-4" />
+                    <Signal className="h-4 w-4" />
+                    <Battery className="h-4 w-4" />
                   </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-6 sm:mb-8">
+                <div className="mb-8">
                   <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-loading-bar" />
                   </div>
                 </div>
 
                 {/* Health Metrics */}
-                <div className="grid grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-3 sm:p-4 text-center border border-white/5 hover:border-cyan-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <Activity className="h-6 sm:h-8 w-6 sm:w-8 text-cyan-400 mx-auto mb-2 animate-pulse" />
-                    <div className="text-xl sm:text-2xl font-bold text-white mb-1 animate-counter" data-target="72">72</div>
-                    <div className="text-xs sm:text-sm text-gray-400">BPM</div>
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-cyan-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <Activity className="h-8 w-8 text-cyan-400 mx-auto mb-2 animate-pulse" />
+                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="72">72</div>
+                    <div className="text-sm text-gray-400">BPM</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-3 sm:p-4 text-center border border-white/5 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <div className="text-2xl sm:text-3xl mb-2 animate-pulse">🌡️</div>
-                    <div className="text-xl sm:text-2xl font-bold text-white mb-1 animate-counter" data-target="98.6">98.6</div>
-                    <div className="text-xs sm:text-sm text-gray-400">°F</div>
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <div className="text-3xl mb-2 animate-pulse">🌡️</div>
+                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="98.6">98.6</div>
+                    <div className="text-sm text-gray-400">°F</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-3 sm:p-4 text-center border border-white/5 hover:border-purple-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <div className="text-2xl sm:text-3xl mb-2 animate-pulse">🫁</div>
-                    <div className="text-xl sm:text-2xl font-bold text-white mb-1 animate-counter" data-target="16">16</div>
-                    <div className="text-xs sm:text-sm text-gray-400">RPM</div>
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-purple-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <div className="text-3xl mb-2 animate-pulse">🫁</div>
+                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="16">16</div>
+                    <div className="text-sm text-gray-400">RPM</div>
                   </div>
                 </div>
 
                 {/* Status Indicators */}
-                <div className="flex flex-col sm:flex-row justify-between items-center text-xs sm:text-sm">
+                <div className="flex justify-between items-center text-sm">
                   <div className="flex items-center gap-2 text-green-400">
-                    <div className="w-2 sm:w-2 h-2 sm:h-2 bg-green-400 rounded-full animate-ping" />
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
                     <span>All Systems Normal</span>
                   </div>
-                  <div className="text-gray-400 mt-2 sm:mt-0">Last Updated: Now</div>
+                  <div className="text-gray-400">Last Updated: Now</div>
                 </div>
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute -top-3 sm:-top-4 -right-3 sm:-right-4 w-6 sm:w-8 h-6 sm:h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-bounce" />
-              <div className="absolute -bottom-3 sm:-bottom-4 -left-3 sm:-left-4 w-4 sm:w-6 h-4 sm:h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse" />
+              <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-bounce" />
+              <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse" />
             </div>
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="absolute -bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <div className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 cursor-pointer" onClick={() => scrollToSection('features')}>
-            <div className="text-xs sm:text-sm font-medium">Scroll to explore</div>
-            <ChevronDown className="h-5 sm:h-6 w-5 sm:w-6 animate-pulse" />
+            <div className="text-sm font-medium">Scroll to explore</div>
+            <ChevronDown className="h-6 w-6 animate-pulse" />
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 relative">
+      <section id="features" className="py-32 px-6 relative">
         <div className="container mx-auto">
-          <div className={`text-center mb-12 sm:mb-16 lg:mb-20 ${isVisible.features ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="features">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+          <div className={`text-center mb-20 ${isVisible.features ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="features">
+            <h2 className="text-5xl font-bold text-white mb-6">
               Revolutionary
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Features</span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Experience the future of healthcare technology with our cutting-edge AI-powered platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 icon: Brain,
@@ -450,20 +453,20 @@ export default function LandingPage() {
             ].map((feature, index) => (
               <div
                 key={index}
-                className={`group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${isVisible.features ? `animate-fade-in-up` : 'opacity-0'
+                className={`group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-white/10 hover:border-white/20 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${isVisible.features ? `animate-fade-in-up` : 'opacity-0'
                   }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
                 data-animate
               >
-                <div className={`w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 glow-${feature.glowColor}`}>
-                  <feature.icon className="h-6 sm:h-8 w-6 sm:w-8 text-white" />
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 glow-${feature.glowColor}`}>
+                  <feature.icon className="h-8 w-8 text-white" />
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 group-hover:text-cyan-400 transition-colors duration-300">
+                <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-cyan-400 transition-colors duration-300">
                   {feature.title}
                 </h3>
 
-                <p className="text-sm sm:text-base text-gray-300 leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
+                <p className="text-gray-300 leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
                   {feature.description}
                 </p>
 
@@ -476,19 +479,19 @@ export default function LandingPage() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-b from-slate-900/50 to-transparent relative">
+      <section id="services" className="py-32 px-6 bg-gradient-to-b from-slate-900/50 to-transparent relative">
         <div className="container mx-auto">
-          <div className={`text-center mb-12 sm:mb-16 lg:mb-20 ${isVisible.services ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="services">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+          <div className={`text-center mb-20 ${isVisible.services ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="services">
+            <h2 className="text-5xl font-bold text-white mb-6">
               Platform
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Services</span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Comprehensive healthcare solutions designed to meet all your medical needs in one integrated platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-12">
+          <div className="grid md:grid-cols-3 gap-12">
             {[
               {
                 icon: Activity,
@@ -511,43 +514,40 @@ export default function LandingPage() {
             ].map((service, index) => (
               <div
                 key={index}
-                className={`group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 md:p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl glow-subtle ${isVisible.services ? `animate-fade-in-up` : 'opacity-0'
+                className={`group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl glow-subtle ${isVisible.services ? `animate-fade-in-up` : 'opacity-0'
                   }`}
                 style={{ animationDelay: `${index * 0.2}s` }}
                 data-animate
               >
-                <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-3xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center mb-6 sm:mb-8 group-hover:scale-110 transition-transform duration-300 glow-cyan">
-                  <service.icon className="h-8 sm:h-10 w-8 sm:w-10 text-white" />
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300 glow-cyan">
+                  <service.icon className="h-10 w-10 text-white" />
                 </div>
 
-                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 group-hover:text-cyan-400 transition-colors duration-300">
+                <h3 className="text-3xl font-bold text-white mb-6 group-hover:text-cyan-400 transition-colors duration-300">
                   {service.title}
                 </h3>
 
-                <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-6 sm:mb-8 leading-relaxed">
+                <p className="text-gray-300 text-lg mb-8 leading-relaxed">
                   {service.description}
                 </p>
 
-                <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                <ul className="space-y-4 mb-8">
                   {service.features.map((feature, idx) => (
                     <li key={idx} className="flex items-center text-gray-300 group-hover:text-gray-200 transition-colors duration-300">
-                      <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-cyan-400 mr-2 sm:mr-3 group-hover:text-cyan-300" />
-                      <span className="text-sm sm:text-base">{feature}</span>
+                      <CheckCircle className="h-5 w-5 text-cyan-400 mr-3 group-hover:text-cyan-300" />
+                      <span className="text-base">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button
-  variant="outline"
-  onClick={handleLaunchPlatform}
-  className="w-full h-auto border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-2 sm:py-3 md:py-4 px-2 sm:px-3 md:px-4 rounded-4xl font-semibold transition-all duration-300 hover:scale-105 text-sm sm:text-base md:text-base whitespace-normal break-words text-center"
->
-  <span className="flex items-center justify-center gap-2">
-    Explore {service.title}
-    <ArrowRight className="h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6" />
-  </span>
-</Button>
-
+                  variant="outline"
+                  onClick={handleLaunchPlatform}
+                  className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
+                >
+                  Explore {service.title}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </div>
             ))}
           </div>
@@ -555,19 +555,19 @@ export default function LandingPage() {
       </section>
 
       {/* Statistics/About Section */}
-      <section id="stats" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 relative">
+      <section id="stats" className="py-32 px-6 relative">
         <div className="container mx-auto">
-          <div className={`text-center mb-12 sm:mb-16 lg:mb-20 ${isVisible.stats ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="stats">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+          <div className={`text-center mb-20 ${isVisible.stats ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="stats">
+            <h2 className="text-5xl font-bold text-white mb-6">
               Platform
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Statistics</span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Trusted by healthcare providers and patients worldwide for delivering exceptional medical care
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
             {[
               { number: "10K+", label: "Active Users", icon: Users },
               { number: "50+", label: "AI Features", icon: Brain },
@@ -576,24 +576,24 @@ export default function LandingPage() {
             ].map((stat, index) => (
               <div
                 key={index}
-                className={`group text-center bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 glow-subtle ${isVisible.stats ? `animate-fade-in-up` : 'opacity-0'
+                className={`group text-center bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-110 glow-subtle ${isVisible.stats ? `animate-fade-in-up` : 'opacity-0'
                   }`}
                 style={{ animationDelay: `${index * 0.1}s` }}
                 data-animate
               >
-                <stat.icon className="h-10 sm:h-12 w-10 sm:w-12 text-cyan-400 mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300 animate-counter" data-target={stat.number}>
+                <stat.icon className="h-12 w-12 text-cyan-400 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+                <div className="text-4xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300 animate-counter" data-target={stat.number}>
                   {stat.number}
                 </div>
-                <div className="text-sm sm:text-base text-gray-300 font-medium group-hover:text-gray-200 transition-colors duration-300">{stat.label}</div>
+                <div className="text-gray-300 font-medium group-hover:text-gray-200 transition-colors duration-300">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Developer Section */}
-          <div className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-8 sm:p-10 lg:p-12 border border-white/10 max-w-3xl sm:max-w-4xl mx-auto text-center glow-subtle ${isVisible.stats ? 'animate-fade-in-up' : 'opacity-0'
+          <div className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-12 border border-white/10 max-w-4xl mx-auto text-center glow-subtle ${isVisible.stats ? 'animate-fade-in-up' : 'opacity-0'
             }`} data-animate style={{ animationDelay: '0.5s' }}>
-            <div className="w-24 sm:w-32 h-24 sm:h-32 rounded-full overflow-hidden mx-auto mb-6 sm:mb-8 shadow-2xl hover:scale-110 transition-transform duration-300 glow-cyan cursor-pointer border-4 border-cyan-400/50">
+            <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-8 shadow-2xl hover:scale-110 transition-transform duration-300 glow-cyan cursor-pointer border-4 border-cyan-400/50">
               <Image
                 src="/curagenie-hero.png"
                 alt="Harsh Gupta - CuraGenie Developer"
@@ -604,24 +604,24 @@ export default function LandingPage() {
               />
             </div>
 
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">Harsh Gupta</h3>
-            <p className="text-base sm:text-lg lg:text-xl text-cyan-400 mb-4 sm:mb-6 font-semibold">Full Stack Developer & Healthcare Tech Innovator</p>
+            <h3 className="text-4xl font-bold text-white mb-4">Harsh Gupta</h3>
+            <p className="text-xl text-cyan-400 mb-6 font-semibold">Full Stack Developer & Healthcare Tech Innovator</p>
 
-            <p className="text-sm sm:text-base lg:text-lg text-gray-300 leading-relaxed mb-6 sm:mb-8 max-w-xl sm:max-w-2xl mx-auto">
+            <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-2xl mx-auto">
               Passionate about revolutionizing healthcare through cutting-edge technology.
               CuraGenie represents the perfect fusion of AI innovation and healthcare accessibility,
               designed to transform how we approach medical care in the digital age.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               {["React", "Next.js", "Node.js", "AI/ML", "Healthcare Tech", "TypeScript"].map((skill) => (
-                <span key={skill} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-slate-700 to-slate-800 text-cyan-400 rounded-full text-xs sm:text-sm font-semibold border border-cyan-400/20 hover:border-cyan-400/50 transition-all duration-300 hover:scale-105">
+                <span key={skill} className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 text-cyan-400 rounded-full text-sm font-semibold border border-cyan-400/20 hover:border-cyan-400/50 transition-all duration-300 hover:scale-105">
                   {skill}
                 </span>
               ))}
             </div>
 
-            <div className="flex justify-center space-x-3 sm:space-x-4">
+            <div className="flex justify-center space-x-4">
               {[
                 { icon: Mail, label: "Email", href: "mailto:guptasecularharsh@gmail.com" },
                 { icon: Phone, label: "Phone", href: "tel:+918081434149" },
@@ -631,10 +631,10 @@ export default function LandingPage() {
                   key={idx}
                   variant="outline"
                   size="lg"
-                  className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 rounded-2xl px-4 sm:px-6 py-2 sm:py-3 transition-all duration-300 hover:scale-105"
+                  className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 rounded-2xl px-6 py-3 transition-all duration-300 hover:scale-105"
                   onClick={() => window.open(contact.href, '_blank', 'noopener,noreferrer')}
                 >
-                  <contact.icon className="h-4 sm:h-5 w-4 sm:w-5" />
+                  <contact.icon className="h-5 w-5" />
                   <span className="sr-only">{contact.label}</span>
                 </Button>
               ))}
@@ -644,21 +644,22 @@ export default function LandingPage() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-gradient-to-t from-slate-900/50 to-transparent relative">
+      <section id="contact" className="py-32 px-6 bg-gradient-to-t from-slate-900/50 to-transparent relative">
         <div className="container mx-auto">
-          <div className={`text-center mb-12 sm:mb-16 lg:mb-20 ${isVisible.contact ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="contact">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+          <div className={`text-center mb-20 ${isVisible.contact ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="contact">
+            <h2 className="text-5xl font-bold text-white mb-6">
               Get In
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Touch</span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-xl sm:max-w-2xl lg:max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Ready to revolutionize your healthcare experience? Let's connect and explore how CuraGenie can transform your medical journey.
             </p>
           </div>
 
+
           {/* Contact Form */}
-          <div className={`mx-auto max-w-xl sm:max-w-2xl bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 glow-subtle ${isVisible.contact ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.4s' }}>
-            <form className="space-y-4 sm:space-y-6" onSubmit={(e) => {
+          <div className={`mx-auto max-w-2xl bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-110 glow-subtle ${isVisible.contact ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.4s' }}>
+            <form className="space-y-6" onSubmit={(e) => {
               e.preventDefault()
               const formData = new FormData(e.currentTarget)
               const name = formData.get('name') as string
@@ -669,7 +670,7 @@ export default function LandingPage() {
               e.currentTarget.reset()
             }}>
               <div>
-                <label htmlFor="name" className="block text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">
+                <label htmlFor="name" className="block text-lg font-semibold text-white mb-3">
                   Full Name
                 </label>
                 <input
@@ -677,13 +678,13 @@ export default function LandingPage() {
                   id="name"
                   name="name"
                   required
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-base sm:text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your full name"
                 />
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">
+                <label htmlFor="email" className="block text-lg font-semibold text-white mb-3">
                   Email Address
                 </label>
                 <input
@@ -691,59 +692,63 @@ export default function LandingPage() {
                   id="email"
                   name="email"
                   required
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-base sm:text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your email address"
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">
+                <label htmlFor="message" className="block text-lg font-semibold text-white mb-3">
                   Message
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   required
-                  rows={4}
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-base sm:text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm resize-none"
+                  rows={6}
+                  className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm resize-none"
                   placeholder="Tell us about your healthcare needs or questions..."
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-base sm:text-lg font-semibold py-4 sm:py-6 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-lg font-semibold py-6 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
               >
-                <Mail className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6" />
+                <Mail className="mr-3 h-6 w-6" />
                 Send Message
-                <ArrowRight className="ml-2 sm:ml-3 h-5 sm:h-6 w-5 sm:w-6" />
+                <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
             </form>
           </div>
+
         </div>
       </section>
 
+      
+
       {/* Footer */}
-      <footer className="py-12 sm:py-16 px-4 sm:px-6 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 relative">
-        <div className="container mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
+      <footer className="py-16 px-6 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 relative">
+        <div className="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+
           {/* Logo + Description */}
-          <div className="sm:col-span-2 space-y-4">
-            <div className="flex items-center space-x-2 sm:space-x-3 group">
-              <Brain className="h-8 sm:h-10 w-8 sm:w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          <div className="md:col-span-2 space-y-4">
+            <div className="flex items-center space-x-3 group">
+              <Brain className="h-10 w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 CuraGenie
               </span>
             </div>
-            <p className="text-sm sm:text-base text-gray-400">
+            <p className="text-gray-400 text-base">
               Revolutionizing healthcare through advanced AI technology and personalized medicine.
               Built with ❤️ for a healthier tomorrow.
             </p>
           </div>
 
-          {/* Features */}
+          {/* Feaures */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Features</h4>
-            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
+            <h4 className="text-lg font-semibold text-white mb-4">Features</h4>
+            <ul className="space-y-3 text-gray-400">
               <li>
                 <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
                   <Brain className="w-4 h-4" />
@@ -785,8 +790,8 @@ export default function LandingPage() {
 
           {/* Services */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Services</h4>
-            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
+            <h4 className="text-lg font-semibold text-white mb-4">Services</h4>
+            <ul className="space-y-3 text-gray-400">
               <li>
                 <a onClick={() => scrollToSection('services')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
                   <Activity className="w-4 h-4" />
@@ -794,15 +799,15 @@ export default function LandingPage() {
                 </a>
               </li>
               <li>
-                <a onClick={() => scrollToSection('services')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
                   <Brain className="w-4 h-4" />
-                  <span>AI Health Analytics</span>
+                  <span>AI Health Analytices</span>
                 </a>
               </li>
               <li>
-                <a onClick={() => scrollToSection('services')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                <a onClick={() => scrollToSection('features')} className="flex items-center space-x-2 hover:text-cyan-400 transition">
                   <Smartphone className="w-4 h-4" />
-                  <span>Mobile Health Platform</span>
+                  <span>Mobile Health Plateform</span>
                 </a>
               </li>
             </ul>
@@ -810,8 +815,8 @@ export default function LandingPage() {
 
           {/* Socials */}
           <div>
-            <h4 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Socials</h4>
-            <ul className="space-y-2 sm:space-y-3 text-gray-400 text-sm sm:text-base">
+            <h4 className="text-lg font-semibold text-white mb-4">Socials</h4>
+            <ul className="space-y-3 text-gray-400">
               <li>
                 <a href="mailto:guptasecularharsh@gmail.com" className="flex items-center space-x-2 hover:text-cyan-400 transition">
                   <Mail className="w-4 h-4" />
@@ -844,7 +849,7 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="container mx-auto mt-8 sm:mt-12 border-t border-slate-700/50 pt-6 sm:pt-8 flex flex-col md:flex-row items-center justify-around text-gray-500 text-xs sm:text-sm">
+        <div className="container mx-auto mt-12 border-t border-slate-700/50 pt-8 flex flex-col md:flex-row items-center justify-around text-gray-500 text-sm">
           <p>
             © 2025 CuraGenie - Developed by
             <span className="text-cyan-400 font-semibold"> Harsh Gupta</span>.
@@ -855,6 +860,8 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+
 
       {/* Custom Styles */}
       <style jsx global>{`
@@ -881,7 +888,7 @@ export default function LandingPage() {
         @keyframes fade-in-up {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
           }
           to {
             opacity: 1;
@@ -892,7 +899,7 @@ export default function LandingPage() {
         @keyframes fade-in-left {
           from {
             opacity: 0;
-            transform: translateX(-20px);
+            transform: translateX(-30px);
           }
           to {
             opacity: 1;
@@ -903,7 +910,7 @@ export default function LandingPage() {
         @keyframes fade-in-right {
           from {
             opacity: 0;
-            transform: translateX(20px);
+            transform: translateX(30px);
           }
           to {
             opacity: 1;
@@ -914,7 +921,7 @@ export default function LandingPage() {
         @keyframes slide-in-right {
           from {
             opacity: 0;
-            transform: translateX(50px);
+            transform: translateX(100px);
           }
           to {
             opacity: 1;
@@ -925,7 +932,7 @@ export default function LandingPage() {
         @keyframes slide-down {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-20px);
           }
           to {
             opacity: 1;
@@ -947,15 +954,15 @@ export default function LandingPage() {
         }
         
         .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
+          animation: fade-in-up 0.8s ease-out forwards;
         }
         
         .animate-fade-in-left {
-          animation: fade-in-left 0.6s ease-out forwards;
+          animation: fade-in-left 0.8s ease-out forwards;
         }
         
         .animate-fade-in-right {
-          animation: fade-in-right 0.6s ease-out forwards;
+          animation: fade-in-right 0.8s ease-out forwards;
         }
         
         .animate-slide-in-right {
@@ -967,35 +974,35 @@ export default function LandingPage() {
         }
         
         .glow-cyan {
-          box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
         }
         
         .glow-emerald {
-          box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
         }
         
         .glow-purple {
-          box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+          box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
         }
         
         .glow-yellow {
-          box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+          box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
         }
         
         .glow-rose {
-          box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+          box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
         }
         
         .glow-indigo {
-          box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+          box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
         
         .glow-subtle {
-          box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+          box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
         }
         
         .glow-subtle:hover {
-          box-shadow: 0 0 40px rgba(34, 211, 238, 0.1);
+          box-shadow: 0 0 60px rgba(34, 211, 238, 0.1);
         }
         
         .animate-spin-slow {
@@ -1018,7 +1025,7 @@ export default function LandingPage() {
         
         /* Hide scrollbar but keep functionality */
         ::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         
         ::-webkit-scrollbar-track {
@@ -1032,215 +1039,6 @@ export default function LandingPage() {
         
         ::-webkit-scrollbar-thumb:hover {
           background: rgba(34, 211, 238, 0.7);
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 640px) {
-          /* Global adjustments */
-          body {
-            font-size: 14px;
-          }
-
-          /* Navigation */
-          nav {
-            padding: 0 12px;
-          }
-          .container {
-            padding-left: 12px;
-            padding-right: 12px;
-          }
-
-          /* Hero Section */
-          #home {
-            min-height: 70vh;
-            padding-top: 64px; /* Account for fixed nav */
-          }
-          #home h1 {
-            font-size: clamp(2rem, 8vw, 2.5rem);
-          }
-          #home h2 {
-            font-size: clamp(1.5rem, 6vw, 1.75rem);
-          }
-          #home p {
-            font-size: clamp(0.875rem, 4vw, 1rem);
-          }
-          #home .group button {
-            padding: 10px 16px;
-            font-size: 0.875rem;
-          }
-          #home .relative.bg-gradient-to-br {
-            transform: scale(0.9);
-          }
-          #home .grid {
-            gap: 4rem;
-          }
-
-          /* Features Section */
-          #features {
-            padding-top: 4rem;
-            padding-bottom: 4rem;
-          }
-          #features h2 {
-            font-size: clamp(2rem, 8vw, 2.5rem);
-          }
-          #features p {
-            font-size: clamp(0.875rem, 4vw, 1rem);
-          }
-          #features .grid {
-            grid-template-columns: 1fr;
-          }
-
-          /* Services Section */
-          #services {
-            padding-top: 4rem;
-            padding-bottom: 4rem;
-          }
-          #services h2 {
-            font-size: clamp(2rem, 8vw, 2.5rem);
-          }
-          #services p {
-            font-size: clamp(0.875rem, 4vw, 1rem);
-          }
-          #services .grid {
-            grid-template-columns: 1fr;
-          }
-
-          /* Stats Section */
-          #stats {
-            padding-top: 4rem;
-            padding-bottom: 4rem;
-          }
-          #stats h2 {
-            font-size: clamp(2rem, 8vw, 2.5rem);
-          }
-          #stats p {
-            font-size: clamp(0.875rem, 4vw, 1rem);
-          }
-          #stats .grid {
-            grid-template-columns: 1fr 1fr;
-          }
-          #stats .group {
-            padding: 1rem;
-          }
-          #stats .group svg {
-            height: 2.5rem;
-            width: 2.5rem;
-          }
-          #stats .group div.text-4xl {
-            font-size: 1.75rem;
-          }
-
-          /* Contact Section */
-          #contact {
-            padding-top: 4rem;
-            padding-bottom: 4rem;
-          }
-          #contact h2 {
-            font-size: clamp(2rem, 8vw, 2.5rem);
-          }
-          #contact p {
-            font-size: clamp(0.875rem, 4vw, 1rem);
-          }
-          #contact form {
-            padding: 1.5rem;
-          }
-          #contact input, #contact textarea {
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-          }
-          #contact button {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-          }
-
-          /* Footer */
-          footer {
-            padding-top: 3rem;
-            padding-bottom: 3rem;
-          }
-          footer .grid {
-            grid-template-columns: 1fr;
-          }
-          footer .sm\\:col-span-2 {
-            grid-column: span 1;
-          }
-          footer h4 {
-            font-size: 1rem;
-          }
-          footer ul li {
-            font-size: 0.875rem;
-          }
-        }
-
-        @media (min-width: 641px) and (max-width: 1024px) {
-          /* Navigation */
-          .container {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          /* Hero Section */
-          #home {
-            min-height: 80vh;
-          }
-          #home h1 {
-            font-size: clamp(3rem, 7vw, 4rem);
-          }
-          #home h2 {
-            font-size: clamp(2rem, 5vw, 2.5rem);
-          }
-          #home p {
-            font-size: clamp(1rem, 3vw, 1.125rem);
-          }
-
-          /* Features Section */
-          #features h2 {
-            font-size: clamp(2.5rem, 6vw, 3rem);
-          }
-          #features p {
-            font-size: clamp(1rem, 3vw, 1.125rem);
-          }
-          #features .grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          /* Services Section */
-          #services h2 {
-            font-size: clamp(2.5rem, 6vw, 3rem);
-          }
-          #services p {
-            font-size: clamp(1rem, 3vw, 1.125rem);
-          }
-          #services .grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          /* Stats Section */
-          #stats h2 {
-            font-size: clamp(2.5rem, 6vw, 3rem);
-          }
-          #stats p {
-            font-size: clamp(1rem, 3vw, 1.125rem);
-          }
-          #stats .grid {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-          }
-
-          /* Contact Section */
-          #contact h2 {
-            font-size: clamp(2.5rem, 6vw, 3rem);
-          }
-          #contact p {
-            font-size: clamp(1rem, 3vw, 1.125rem);
-          }
-
-          /* Footer */
-          footer .grid {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-          footer .sm\\:col-span-2 {
-            grid-column: span 2;
-          }
         }
       `}</style>
     </div>
