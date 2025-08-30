@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from '@/components/ui/sonner';
 import { QueryProvider } from '@/components/providers/query-provider';
+import BacktoTop from "@/components/BacktoTop.tsx/BAcktoTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,8 +73,11 @@ export default function RootLayout({
         <QueryProvider>
           {children}
           <Toaster />
+          <BacktoTop />
         </QueryProvider>
       </body>
     </html>
   );
 }
+
+
