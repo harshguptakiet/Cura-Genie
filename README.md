@@ -19,6 +19,26 @@
 </div>
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
 
+### CuraGenie - AI-Powered Healthcare Platform
+
+CuraGenie is an open-source AI healthcare platform designed to revolutionize the way we experience healthcare.
+It brings together AI-driven medical imaging, genomic analysis, real-time health monitoring, and conversational AI into one unified system.
+
+**With features like:**
+
+**📊 Health Dashboard** – Real-time metrics, interactive visualizations, and personalized insights
+
+**🧠 AI Health Analytics** – Predictive health analysis, risk assessment, and intelligent data processing
+
+**📱 Mobile Health Platform** – Seamless cross-platform experience with secure offline access
+
+**🔒 Data Security** – Enterprise-grade encryption and HIPAA-compliant safeguards
+
+**🤝 Collaborative Care** – Connect patients, doctors, and caregivers in one ecosystem
+
+CuraGenie makes healthcare smarter, more accessible, and truly personalized — empowering individuals and healthcare providers with the insights they need to take control of health and wellness.
+
+
 **📊 Project Insights**
 
 <table align="center">
