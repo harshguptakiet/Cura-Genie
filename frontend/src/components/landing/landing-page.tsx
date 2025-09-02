@@ -514,7 +514,7 @@ export default function LandingPage() {
             ].map((service, index) => (
               <div
                 key={index}
-                className={`group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl glow-subtle ${isVisible.services ? `animate-fade-in-up` : 'opacity-0'
+                className={`flex flex-col group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-105 hover:shadow-2xl glow-subtle ${isVisible.services ? `animate-fade-in-up` : 'opacity-0'
                   }`}
                 style={{ animationDelay: `${index * 0.2}s` }}
                 data-animate
@@ -531,23 +531,25 @@ export default function LandingPage() {
                   {service.description}
                 </p>
 
-                <ul className="space-y-4 mb-8">
-                  {service.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-gray-300 group-hover:text-gray-200 transition-colors duration-300">
-                      <CheckCircle className="h-5 w-5 text-cyan-400 mr-3 group-hover:text-cyan-300" />
-                      <span className="text-base">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  variant="outline"
-                  onClick={handleLaunchPlatform}
-                  className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
-                >
-                  Explore {service.title}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <div className="mt-auto">
+                  <ul className="space-y-4 mb-8">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center text-gray-300 group-hover:text-gray-200 transition-colors duration-300">
+                        <CheckCircle className="h-5 w-5 text-cyan-400 mr-3 group-hover:text-cyan-300" />
+                        <span className="text-base">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+  
+                  <Button
+                    variant="outline"
+                    onClick={handleLaunchPlatform}
+                    className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
+                  >
+                    Explore {service.title}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
