@@ -892,26 +892,50 @@ async def real_chatbot(message: dict):
         }
 
 # Authentication endpoints
+from fastapi import HTTPException
+
 @app.post("/api/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
     user = authenticate_user(credentials.email, credentials.password)
     if not user:
-        # Create demo user if doesn't exist
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR IGNORE INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
-                      (credentials.email, credentials.email.split('@')[0], credentials.password, 'patient'))
-        user_id = cursor.lastrowid or 1
-        conn.commit()
-        conn.close()
-    else:
-        user_id = user[0]
-    
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    user_id = user[0]
     return Token(
         access_token=f"token-{user_id}-{datetime.now().timestamp()}",
         token_type="bearer",
         user_id=user_id,
         role="patient"
+    )
+
+
+# Registration endpoint
+@app.post("/api/auth/register", response_model=Token)
+async def register(user: UserLogin):  # You can also define a UserCreate schema if you want
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if user already exists
+    cursor.execute("SELECT * FROM users WHERE email = ?", (user.email,))
+    existing_user = cursor.fetchone()
+    if existing_user:
+        conn.close()
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    # Insert new user
+    cursor.execute(
+        "INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)",
+        (user.email, user.email.split('@')[0], user.password, "patient"),
+    )
+    conn.commit()
+    user_id = cursor.lastrowid
+    conn.close()
+
+    return Token(
+        access_token=f"token-{user_id}-{datetime.now().timestamp()}",
+        token_type="bearer",
+        user_id=user_id,
+        role="patient",
     )
 
 @app.get("/api/auth/me")
