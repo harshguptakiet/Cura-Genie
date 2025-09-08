@@ -19,6 +19,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
 from pathlib import Path
+from fastapi import Depends, Header
+from typing import Optional
 
 # Import our real genomic processing utilities
 from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator, GenomicQualityController
@@ -26,6 +28,34 @@ from genomic_utils import VcfAnalyzer, FastqAnalyzer, PolygeneticRiskCalculator,
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+# Function to extract user_id from Authorization header
+def extract_user_id_from_auth(authorization: Optional[str] = Header(None)) -> str:
+    """
+    Parse Authorization header for token format:
+    - 'Bearer token-<user_id>-<timestamp>' or 'token-<user_id>-<timestamp>'
+    Returns user_id as str.
+    Raises 401 if missing/invalid.
+    """
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+    auth = authorization.strip()
+    if auth.lower().startswith("bearer "):
+        token = auth.split(" ", 1)[1]
+    else:
+        token = auth
+
+    if token.startswith("token-"):
+        parts = token.split("-")
+        if len(parts) >= 2:
+            return parts[1]
+
+    raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+
 
 # Create FastAPI app
 app = FastAPI(
@@ -396,11 +426,9 @@ async def health_check():
     }
 
 # Implementation function for file upload  
-async def upload_genomic_file_impl(background_tasks: BackgroundTasks, file: UploadFile):
+async def upload_genomic_file_impl(background_tasks: BackgroundTasks, file: UploadFile,user_id: str):
     """Implementation function for file upload"""
-    try:
-        user_id = 1  # In real app, get from auth token
-        
+    try:        
         # Validate file type
         if not file.filename:
             raise HTTPException(status_code=400, detail="No filename provided")
@@ -465,15 +493,16 @@ async def upload_genomic_file_impl(background_tasks: BackgroundTasks, file: Uplo
 
 # Frontend compatibility endpoint
 @app.post("/api/local-upload/genomic-data-test")
-async def frontend_upload_test(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def frontend_upload_test(background_tasks: BackgroundTasks, file: UploadFile = File(...),user_id: str = Depends(extract_user_id_from_auth)):
     """Frontend compatibility endpoint for file upload"""
-    return await upload_genomic_file_impl(background_tasks, file)
+    return await upload_genomic_file_impl(background_tasks, file,user_id)
 
 # REAL file upload with actual processing
 @app.post("/api/upload/genomic")
-async def upload_genomic_file(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def upload_genomic_file(background_tasks: BackgroundTasks,file: UploadFile = File(...),user_id: str = Depends(extract_user_id_from_auth)):
     """REAL genomic file upload with actual VCF/FASTQ processing"""
-    return await upload_genomic_file_impl(background_tasks, file)
+    return await upload_genomic_file_impl(background_tasks, file, user_id)
+
 
 # REAL PRS scores from actual calculations - LATEST ONLY
 @app.get("/api/direct/prs/user/{user_id}")
@@ -819,7 +848,7 @@ async def get_genome_browser_data(user_id: str):
 
 # REAL chatbot with genomic knowledge
 @app.post("/api/chatbot/chat")
-async def real_chatbot(message: dict):
+async def real_chatbot(message: dict,user_id: str = Depends(extract_user_id_from_auth)):
     """REAL chatbot with actual medical and genomic knowledge"""
     try:
         user_message = message.get("message", "").lower()
@@ -869,7 +898,7 @@ async def real_chatbot(message: dict):
         # Check if user has real data to provide personalized responses
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM prs_scores WHERE user_id = ?", (1,))  # Use actual user_id
+        cursor.execute("SELECT COUNT(*) FROM prs_scores WHERE user_id = ?", (user_id,))  # Use actual user_id
         has_scores = cursor.fetchone()[0] > 0
         conn.close()
         
@@ -939,14 +968,21 @@ async def register(user: UserLogin):  # You can also define a UserCreate schema 
     )
 
 @app.get("/api/auth/me")
-async def get_current_user():
-    return {
-        "id": 1,
-        "email": "demo@curagenie.com",
-        "username": "demo_user",
-        "role": "patient",
-        "is_active": True
-    }
+async def get_current_user(user_id: str = Depends(extract_user_id_from_auth)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, email, username, role, is_active FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {
+            "id": str(row[0]),
+            "email": row[1],
+            "username": row[2],
+            "role": row[3],
+            "is_active": bool(row[4])
+        }
+    raise HTTPException(status_code=404, detail="User not found")
 
 # Other essential endpoints
 @app.get("/api/features")
