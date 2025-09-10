@@ -30,7 +30,8 @@ import {
   Wifi,
   Battery,
   Signal,
-  Linkedin
+  Linkedin,
+  MessageSquare
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -48,6 +49,12 @@ export default function LandingPage() {
     stats?: boolean
     contact?: boolean
   }>({})
+  const [isClient, setIsClient] = useState(false)
+
+  // Set client-side flag to prevent hydration mismatches
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Handle scroll effects
   useEffect(() => {
@@ -176,6 +183,7 @@ export default function LandingPage() {
               variant="ghost"
               className="text-white hover:bg-white/20 px-3 py-1 rounded-lg transition-all duration-300 hover:scale-105"
               onClick={() => router.push('/dashboard')}
+              suppressHydrationWarning
             >
               Dashboard →
             </Button>
@@ -206,15 +214,17 @@ export default function LandingPage() {
                 { id: 'features', label: 'Features' },
                 { id: 'services', label: 'Services' },
                 { id: 'stats', label: 'About' },
-                { id: 'contact', label: 'Contact' }
+                { id: 'contact', label: 'Contact' },
+                { id: 'feedback', label: 'Feedback', href: '/feedback' }
               ].map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  onClick={() => item.href ? router.push(item.href) : scrollToSection(item.id)}
                   className={`relative text-sm font-medium transition-all duration-300 hover:scale-105 ${activeSection === item.id
                     ? 'text-cyan-400'
                     : 'text-gray-300 hover:text-white'
                     }`}
+                  suppressHydrationWarning
                 >
                   {item.label}
                   {activeSection === item.id && (
@@ -225,6 +235,7 @@ export default function LandingPage() {
               <Button
                 onClick={handleLaunchPlatform}
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105 glow-cyan"
+                suppressHydrationWarning
               >
                 Launch Platform
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -235,6 +246,7 @@ export default function LandingPage() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              suppressHydrationWarning
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -251,15 +263,17 @@ export default function LandingPage() {
           { id: 'services', label: 'Services' },
           { id: 'stats', label: 'About' },
           { id: 'contact', label: 'Contact' },
+          { id: 'feedback', label: 'Feedback', href: '/feedback' }
         ].map((item) => (
           <button
             key={item.id}
-            onClick={() => scrollToSection(item.id)}
+            onClick={() => item.href ? router.push(item.href) : scrollToSection(item.id)}
             className={`w-full text-center py-2 text-base font-medium rounded-lg transition-all duration-300 ${
               activeSection === item.id
                 ? 'text-cyan-400 bg-white/5'
                 : 'text-gray-300 hover:text-white hover:bg-white/5'
             }`}
+            suppressHydrationWarning
           >
             {item.label}
           </button>
@@ -268,6 +282,7 @@ export default function LandingPage() {
         <Button
           onClick={handleLaunchPlatform}
           className="w-10/12 mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-full text-base py-3 shadow-lg"
+          suppressHydrationWarning
         >
           Get Started
         </Button>
@@ -305,6 +320,7 @@ export default function LandingPage() {
                   onClick={handleLaunchPlatform}
                   size="lg"
                   className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-8 py-4 text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-110 glow-cyan"
+                  suppressHydrationWarning
                 >
                   <Zap className="mr-3 h-6 w-6 group-hover:animate-pulse" />
                   Launch Platform
@@ -316,6 +332,7 @@ export default function LandingPage() {
                   size="lg"
                   onClick={() => scrollToSection('features')}
                   className="border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 px-8 py-4 text-lg rounded-2xl backdrop-blur-sm transition-all duration-500 hover:scale-105"
+                  suppressHydrationWarning
                 >
                   <Play className="mr-3 h-6 w-6" />
                   Explore Features
@@ -545,6 +562,7 @@ export default function LandingPage() {
                     variant="outline"
                     onClick={handleLaunchPlatform}
                     className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
+                    suppressHydrationWarning
                   >
                     Explore {service.title}
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -635,6 +653,7 @@ export default function LandingPage() {
                   size="lg"
                   className="border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 rounded-2xl px-6 py-3 transition-all duration-300 hover:scale-105"
                   onClick={() => window.open(contact.href, '_blank', 'noopener,noreferrer')}
+                  suppressHydrationWarning
                 >
                   <contact.icon className="h-5 w-5" />
                   <span className="sr-only">{contact.label}</span>
@@ -682,6 +701,7 @@ export default function LandingPage() {
                   required
                   className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your full name"
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -696,6 +716,7 @@ export default function LandingPage() {
                   required
                   className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your email address"
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -710,12 +731,14 @@ export default function LandingPage() {
                   rows={6}
                   className="w-full px-6 py-4 bg-slate-700/50 border border-slate-600/50 rounded-2xl text-white placeholder-gray-400 text-lg focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm resize-none"
                   placeholder="Tell us about your healthcare needs or questions..."
+                  suppressHydrationWarning
                 />
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white text-lg font-semibold py-6 rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 glow-cyan"
+                suppressHydrationWarning
               >
                 <Mail className="mr-3 h-6 w-6" />
                 Send Message
@@ -812,6 +835,12 @@ export default function LandingPage() {
                   <span>Mobile Health Plateform</span>
                 </a>
               </li>
+              <li>
+                <a href="/feedback" className="flex items-center space-x-2 hover:text-cyan-400 transition">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Feedback</span>
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -841,6 +870,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => scrollToSection('home')}
                   className="flex items-center space-x-2 hover:text-cyan-400 transition"
+                  suppressHydrationWarning
                 >
                   <MapPin className="w-4 h-4" />
                   <span>Project Location</span>

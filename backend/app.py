@@ -30,6 +30,7 @@ else:
     enhanced_mri_router = None
     _HAS_ENHANCED_MRI = False
 from api.profile import router as profile_router
+from api.feedback import router as feedback_router
 
 # Optional ML router (heavy deps like boto3/tensorflow)
 _ENABLE_ML = os.getenv("ENABLE_ML", "false").lower() in ("1", "true", "yes")
@@ -77,6 +78,7 @@ app.include_router(supabase_upload_router)
 if _HAS_ENHANCED_MRI and enhanced_mri_router is not None:
     app.include_router(enhanced_mri_router)
 app.include_router(profile_router)
+app.include_router(feedback_router)
 if _HAS_ML and ml_router is not None:
     app.include_router(ml_router)
 
