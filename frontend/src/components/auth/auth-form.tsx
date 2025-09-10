@@ -247,31 +247,24 @@ export function AuthForm({ initialMode = 'login', resetToken }: AuthFormProps) {
             {/* Role Selection (Register only) */}
             {mode === 'register' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">I am a:</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="patient"
-                      checked={formData.role === 'patient'}
-                      onChange={(e) => updateFormData('role', e.target.value)}
-                      className="text-blue-600"
-                    />
-                    <span className="text-sm">Patient</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="doctor"
-                      checked={formData.role === 'doctor'}
-                      onChange={(e) => updateFormData('role', e.target.value)}
-                      className="text-blue-600"
-                    />
-                    <span className="text-sm">Doctor</span>
-                  </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={(e) => updateFormData('role', e.target.value)}
+                    className={`w-full rounded-md border border-gray-300 pl-10 pr-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      !formData.role ? 'text-gray-500' : 'text-gray-500'
+                    }`}
+                  >
+                    <option value="" disabled>
+                      Select Role
+                    </option>
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                  </select>
                 </div>
+                {errors.role && <p className="text-sm text-red-500">{errors.role}</p>}
               </div>
             )}
 

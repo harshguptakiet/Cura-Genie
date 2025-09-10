@@ -224,6 +224,7 @@ export default function LandingPage() {
                     ? 'text-cyan-400'
                     : 'text-gray-300 hover:text-white'
                     }`}
+                  suppressHydrationWarning
                 >
                   {item.label}
                   {activeSection === item.id && (
@@ -272,6 +273,7 @@ export default function LandingPage() {
                 ? 'text-cyan-400 bg-white/5'
                 : 'text-gray-300 hover:text-white hover:bg-white/5'
             }`}
+            suppressHydrationWarning
           >
             {item.label}
           </button>
@@ -868,6 +870,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => scrollToSection('home')}
                   className="flex items-center space-x-2 hover:text-cyan-400 transition"
+                  suppressHydrationWarning
                 >
                   <MapPin className="w-4 h-4" />
                   <span>Project Location</span>
