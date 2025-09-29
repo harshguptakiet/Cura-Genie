@@ -253,162 +253,269 @@ export default function LandingPage() {
           </div>
 
           {/* Mobile Menu */}
-{isMenuOpen && (
-  <div className="md:hidden absolute top-full left-0 right-0 px-4 animate-slide-down">
-    <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10  shadow-xl overflow-hidden">
-      <div className="flex flex-col items-center py-6 space-y-4">
-        {[
-          { id: 'home', label: 'Home' },
-          { id: 'features', label: 'Features' },
-          { id: 'services', label: 'Services' },
-          { id: 'stats', label: 'About' },
-          { id: 'contact', label: 'Contact' },
-          { id: 'feedback', label: 'Feedback', href: '/feedback' }
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => item.href ? router.push(item.href) : scrollToSection(item.id)}
-            className={`w-full text-center py-2 text-base font-medium rounded-lg transition-all duration-300 ${
-              activeSection === item.id
-                ? 'text-cyan-400 bg-white/5'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
-            }`}
-            suppressHydrationWarning
-          >
-            {item.label}
-          </button>
-        ))}
+          {isMenuOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 px-4 animate-slide-down">
+              <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10  shadow-xl overflow-hidden">
+                <div className="flex flex-col items-center py-6 space-y-4">
+                  {[
+                    { id: 'home', label: 'Home' },
+                    { id: 'features', label: 'Features' },
+                    { id: 'services', label: 'Services' },
+                    { id: 'stats', label: 'About' },
+                    { id: 'contact', label: 'Contact' },
+                    { id: 'feedback', label: 'Feedback', href: '/feedback' }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => item.href ? router.push(item.href) : scrollToSection(item.id)}
+                      className={`w-full text-center py-2 text-base font-medium rounded-lg transition-all duration-300 ${activeSection === item.id
+                        ? 'text-cyan-400 bg-white/5'
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                        }`}
+                      suppressHydrationWarning
+                    >
+                      {item.label}
+                    </button>
+                  ))}
 
-        <Button
-          onClick={handleLaunchPlatform}
-          className="w-10/12 mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-full text-base py-3 shadow-lg"
-          suppressHydrationWarning
-        >
-          Get Started
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
+                  <Button
+                    onClick={handleLaunchPlatform}
+                    className="w-10/12 mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-full text-base py-3 shadow-lg"
+                    suppressHydrationWarning
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center px-6 pt-24 md:pt-0">
+      <section
+        id="home"
+        className="relative min-h-screen flex items-center justify-center px-6 pt-24 md:pt-0"
+      >
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* change grid-cols-1 to stack vertically */}
+          <div className="grid grid-cols-1 gap-16 items-center text-center lg:text-center">
+
             {/* Hero Text */}
-            <div className={`text-center lg:text-left space-y-8 ${isVisible.home ? 'animate-fade-in-up' : 'opacity-0'}`} data-animate id="home">
+            <div
+              className={`space-y-8 ${isVisible.home ? 'animate-fade-in-up' : 'opacity-0'
+                }`}
+              data-animate
+              id="home"
+            >
               <h1 className="text-6xl lg:text-7xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                   CuraGenie
                 </span>
               </h1>
 
-              <h2 className="text-3xl lg:text-4xl font-semibold text-white/90">
+              <h2
+                className={`font-bold text-3xl sm:text-3xl md:text-4xl lg:text-6xl
+    text-white/90
+    lg:text-transparent lg:bg-clip-text lg:bg-gradient-to-r lg:from-cyan-400 lg:via-blue-400 lg:to-purple-400 lg:animate-gradient-x`}
+              >
                 AI-Powered Healthcare Platform
               </h2>
 
-              <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
-                Transform your healthcare experience with our intelligent medical platform
-                featuring AI diagnostics, virtual consultations, and personalized health insights.
+
+
+              <p className="text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
+                Transform your healthcare experience with our intelligent medical
+                platform featuring AI diagnostics, virtual consultations, and
+                personalized health insights.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start pt-4">
-                <Button
-                  onClick={handleLaunchPlatform}
-                  size="lg"
-                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-8 py-4 text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-110 glow-cyan"
-                  suppressHydrationWarning
-                >
-                  <Zap className="mr-3 h-6 w-6 group-hover:animate-pulse" />
-                  Launch Platform
-                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
 
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => scrollToSection('features')}
-                  className="border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 px-8 py-4 text-lg rounded-2xl backdrop-blur-sm transition-all duration-500 hover:scale-105"
-                  suppressHydrationWarning
-                >
-                  <Play className="mr-3 h-6 w-6" />
-                  Explore Features
-                </Button>
+              <Button
+                onClick={handleLaunchPlatform}
+                size="lg"
+                className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-8 py-4 text-lg font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-110 glow-cyan"
+                suppressHydrationWarning
+              >
+                <Zap className="mr-3 h-6 w-6 group-hover:animate-pulse" />
+                Launch Platform
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
+              </Button>
+
+
+            </div>
+
+            {/* Hero Visual - Dashboard */}
+            <div className="hidden md:block">
+              <div
+                className={`relative ${isVisible.home ? 'animate-fade-in-up' : 'opacity-0'}`}
+                data-animate
+              >
+                <div className="relative mx-auto w-250 h-100 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:scale-105 glow-subtle flex flex-col justify-between">
+                  {/* Window Controls */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-4 h-4 rounded-full bg-slate-400 animate-pulse" />
+                    <div
+                      className="w-4 h-4 rounded-full bg-yellow-400 animate-pulse"
+                      style={{ animationDelay: '0.2s' }}
+                    />
+                    <div
+                      className="w-4 h-4 rounded-full bg-green-400 animate-pulse"
+                      style={{ animationDelay: '0.4s' }}
+                    />
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Wifi className="h-4 w-4" />
+                      <Signal className="h-4 w-4" />
+                      <Battery className="h-4 w-4" />
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-8">
+                    <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-loading-bar" />
+                    </div>
+                  </div>
+
+                  {/* Health Metrics */}
+                  <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-cyan-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                      <Activity className="h-8 w-8 text-cyan-400 mx-auto mb-2 animate-pulse" />
+                      <div
+                        className="text-2xl font-bold text-white mb-1 animate-counter"
+                        data-target="72"
+                      >
+                        72
+                      </div>
+                      <div className="text-sm text-gray-400">BPM</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                      <div className="text-3xl mb-2 animate-pulse">🌡️</div>
+                      <div
+                        className="text-2xl font-bold text-white mb-1 animate-counter"
+                        data-target="98.6"
+                      >
+                        98.6
+                      </div>
+                      <div className="text-sm text-gray-400">°F</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-purple-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                      <div className="text-3xl mb-2 animate-pulse">🫁</div>
+                      <div
+                        className="text-2xl font-bold text-white mb-1 animate-counter"
+                        data-target="16"
+                      >
+                        16
+                      </div>
+                      <div className="text-sm text-gray-400">RPM</div>
+                    </div>
+                  </div>
+
+                  {/* Status Indicators */}
+                  <div className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-2 text-green-400">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
+                      <span>All Systems Normal</span>
+                    </div>
+                    <div className="text-gray-400">Last Updated: Now</div>
+                  </div>
+                </div>
+
+                {/* Floating Elements */}
+                <div className="absolute -top-4 right-49 w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-bounce" />
+                <div className="absolute -bottom-4 left-51 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse" />
               </div>
             </div>
 
-            {/* Hero Visual - Enhanced Medical Dashboard */}
-            <div className={`relative ${isVisible.home ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate>
-              <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:scale-105 glow-subtle">
+
+            {/* Dashboard - Mobile Friendly */}
+            <div className="block md:hidden">
+              <div
+                className={`relative mx-auto w-full max-w-xs bg-gradient-to-br 
+    from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-4 
+    border border-white/10 shadow-2xl hover:shadow-cyan-500/10 
+    transition-all duration-500 hover:scale-105 glow-subtle flex flex-col justify-between`}
+                data-animate
+              >
                 {/* Window Controls */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-4 h-4 rounded-full bg-slate-400 animate-pulse" />
-                  <div className="w-4 h-4 rounded-full bg-yellow-400 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-slate-400 animate-pulse" />
+                  <div
+                    className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"
+                    style={{ animationDelay: '0.2s' }}
+                  />
+                  <div
+                    className="w-3 h-3 rounded-full bg-green-400 animate-pulse"
+                    style={{ animationDelay: '0.4s' }}
+                  />
                   <div className="flex-1" />
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Wifi className="h-4 w-4" />
-                    <Signal className="h-4 w-4" />
-                    <Battery className="h-4 w-4" />
+                  <div className="flex items-center gap-1 text-gray-400 text-xs">
+                    <Wifi className="h-3 w-3" />
+                    <Signal className="h-3 w-3" />
+                    <Battery className="h-3 w-3" />
                   </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8">
-                  <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                <div className="mb-4">
+                  <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-loading-bar" />
                   </div>
                 </div>
 
                 {/* Health Metrics */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-cyan-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <Activity className="h-8 w-8 text-cyan-400 mx-auto mb-2 animate-pulse" />
-                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="72">72</div>
-                    <div className="text-sm text-gray-400">BPM</div>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-xl p-2 text-center border border-white/5 hover:border-cyan-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <Activity className="h-5 w-5 text-cyan-400 mx-auto mb-1 animate-pulse" />
+                    <div className="text-lg font-bold text-white">72</div>
+                    <div className="text-xs text-gray-400">BPM</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <div className="text-3xl mb-2 animate-pulse">🌡️</div>
-                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="98.6">98.6</div>
-                    <div className="text-sm text-gray-400">°F</div>
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-xl p-2 text-center border border-white/5 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <div className="text-xl mb-1 animate-pulse">🌡️</div>
+                    <div className="text-lg font-bold text-white">98.6</div>
+                    <div className="text-xs text-gray-400">°F</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl p-4 text-center border border-white/5 hover:border-purple-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
-                    <div className="text-3xl mb-2 animate-pulse">🫁</div>
-                    <div className="text-2xl font-bold text-white mb-1 animate-counter" data-target="16">16</div>
-                    <div className="text-sm text-gray-400">RPM</div>
+                  <div className="bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-xl p-2 text-center border border-white/5 hover:border-purple-400/30 transition-all duration-300 hover:scale-105 glow-subtle">
+                    <div className="text-xl mb-1 animate-pulse">🫁</div>
+                    <div className="text-lg font-bold text-white">16</div>
+                    <div className="text-xs text-gray-400">RPM</div>
                   </div>
                 </div>
 
                 {/* Status Indicators */}
-                <div className="flex justify-between items-center text-sm">
-                  <div className="flex items-center gap-2 text-green-400">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
-                    <span>All Systems Normal</span>
+                <div className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-1 text-green-400">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping" />
+                    <span>Normal</span>
                   </div>
-                  <div className="text-gray-400">Last Updated: Now</div>
+                  <div className="text-gray-400">Now</div>
                 </div>
               </div>
 
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-bounce" />
-              <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse" />
+            </div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="absolute -bottom-20 md:-bottom-25 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div
+              className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 cursor-pointer"
+              onClick={() => scrollToSection('features')}
+            >
+              <div className="text-sm font-medium">Scroll to explore</div>
+              <ChevronDown className="h-6 w-6 animate-pulse" />
             </div>
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute -bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 cursor-pointer" onClick={() => scrollToSection('features')}>
-            <div className="text-sm font-medium">Scroll to explore</div>
-            <ChevronDown className="h-6 w-6 animate-pulse" />
-          </div>
-        </div>
+
       </section>
+
 
       {/* Features Section */}
       <section id="features" className="py-32 px-6 relative">
@@ -557,7 +664,7 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-  
+
                   <Button
                     variant="outline"
                     onClick={handleLaunchPlatform}
@@ -750,7 +857,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      
+
 
       {/* Footer */}
       <footer className="py-16 px-6 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 relative">
