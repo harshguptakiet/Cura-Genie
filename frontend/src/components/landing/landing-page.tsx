@@ -709,7 +709,7 @@ export default function LandingPage() {
                   <Button
                     variant="outline"
                     onClick={handleLaunchPlatform}
-                    className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
+                    className="w-full border-2 border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/10 hover:text-white hover:border-cyan-400 py-3 rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
                     suppressHydrationWarning
                   >
                     Explore {service.title}
