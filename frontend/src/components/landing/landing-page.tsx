@@ -514,7 +514,7 @@ export default function LandingPage() {
             id="features"
           >
             <h2 className="text-5xl font-bold text-white mb-6">
-              Revolutionary
+              Revolutionary{" "}
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Features
               </span>
@@ -620,7 +620,7 @@ export default function LandingPage() {
             id="services"
           >
             <h2 className="text-5xl font-bold text-white mb-6">
-              Platform
+              Platform{" "}
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 Services
               </span>
@@ -733,7 +733,7 @@ export default function LandingPage() {
             id="stats"
           >
             <h2 className="text-5xl font-bold text-white mb-6">
-              Platform
+              Platform{" "}
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Statistics
               </span>
@@ -869,7 +869,7 @@ export default function LandingPage() {
             id="contact"
           >
             <h2 className="text-5xl font-bold text-white mb-6">
-              Get In
+              Get In{" "} 
               <span className="inline-block bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 Touch
               </span>
