@@ -1,10 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, FormEvent } from 'react'
+
+declare global {
+  namespace React {
+    namespace JSX {
+      interface IntrinsicElements {
+        ul: React.DetailedHTMLProps<React.HTMLAttributes<HTMLUListElement>, HTMLUListElement>;
+        textarea: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>;
+      }
+    }
+  }
+}
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { useAuthStore } from '@/store/auth-store'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import './landing-page.css'
 import {
   User,
   Brain,
@@ -30,12 +43,15 @@ import {
   Wifi,
   Battery,
   Signal,
-  Linkedin
+  Linkedin,
+  Sun,
+  Moon
 } from 'lucide-react'
 import Image from 'next/image'
 
 export default function LandingPage() {
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const { isAuthenticated } = useAuthStore()
   const [scrollY, setScrollY] = useState(0)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -119,7 +135,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-black relative overflow-x-hidden transition-colors duration-300">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Gradient Orbs */}
@@ -185,7 +201,7 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <nav
-        className="fixed top-0 left-0 right-0 z-40 transition-all duration-500 bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-white/10">
+        className="fixed top-0 left-0 right-0 z-40 transition-all duration-500 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-b border-gray-200 dark:border-white/10">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
@@ -194,7 +210,7 @@ export default function LandingPage() {
                 <Brain className="h-10 w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
                 <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-lg group-hover:blur-xl transition-all duration-300" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">
+              <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">
                 CuraGenie
               </span>
             </div>
@@ -213,7 +229,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection(item.id)}
                   className={`relative text-sm font-medium transition-all duration-300 hover:scale-105 ${activeSection === item.id
                     ? 'text-cyan-400'
-                    : 'text-gray-300 hover:text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-cyan-400 dark:hover:text-white'
                     }`}
                 >
                   {item.label}
@@ -222,6 +238,16 @@ export default function LandingPage() {
                   )}
                 </button>
               ))}
+
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300 hover:scale-105 text-gray-600 dark:text-gray-300 hover:text-cyan-400 dark:hover:text-white"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+
               <Button
                 onClick={handleLaunchPlatform}
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105 glow-cyan"
@@ -234,7 +260,7 @@ export default function LandingPage() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="md:hidden text-gray-600 dark:text-white p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-all duration-300"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -243,7 +269,7 @@ export default function LandingPage() {
           {/* Mobile Menu */}
 {isMenuOpen && (
   <div className="md:hidden absolute top-full left-0 right-0 px-4 animate-slide-down">
-    <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10  shadow-xl overflow-hidden">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 shadow-xl overflow-hidden">
       <div className="flex flex-col items-center py-6 space-y-4">
         {[
           { id: 'home', label: 'Home' },
@@ -257,8 +283,8 @@ export default function LandingPage() {
             onClick={() => scrollToSection(item.id)}
             className={`w-full text-center py-2 text-base font-medium rounded-lg transition-all duration-300 ${
               activeSection === item.id
-                ? 'text-cyan-400 bg-white/5'
-                : 'text-gray-300 hover:text-white hover:bg-white/5'
+                ? 'text-cyan-400 bg-white/5 dark:bg-white/5'
+                : 'text-gray-600 dark:text-gray-300 hover:text-cyan-400 dark:hover:text-white hover:bg-gray-100/10 dark:hover:bg-white/5'
             }`}
           >
             {item.label}
@@ -291,11 +317,11 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <h2 className="text-3xl lg:text-4xl font-semibold text-white/90">
+              <h2 className="text-3xl lg:text-4xl font-semibold text-black dark:text-white/90">
                 AI-Powered Healthcare Platform
               </h2>
 
-              <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
+              <p className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl">
                 Transform your healthcare experience with our intelligent medical platform
                 featuring AI diagnostics, virtual consultations, and personalized health insights.
               </p>
@@ -661,7 +687,7 @@ export default function LandingPage() {
 
           {/* Contact Form */}
           <div className={`mx-auto max-w-2xl bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-10 border border-white/10 hover:border-cyan-400/30 transition-all duration-500 hover:scale-110 glow-subtle ${isVisible.contact ? 'animate-fade-in-right' : 'opacity-0'}`} data-animate style={{ animationDelay: '0.4s' }}>
-            <form className="space-y-6" onSubmit={(e) => {
+            <form className="space-y-6" onSubmit={(e: FormEvent<HTMLFormElement>) => {
               e.preventDefault()
               const formData = new FormData(e.currentTarget)
               const name = formData.get('name') as string
@@ -737,7 +763,7 @@ export default function LandingPage() {
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center space-x-3 group">
               <Brain className="h-10 w-10 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                 CuraGenie
               </span>
             </div>
@@ -865,184 +891,7 @@ export default function LandingPage() {
 
 
 
-      {/* Custom Styles */}
-      <style jsx global>{`
-        @keyframes gradient-x {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        
-        @keyframes loading-bar {
-          0% { width: 0%; }
-          50% { width: 75%; }
-          100% { width: 100%; }
-        }
-        
-        @keyframes counter {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fade-in-left {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes fade-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes slide-in-right {
-          from {
-            opacity: 0;
-            transform: translateX(100px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes slide-down {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-gradient-x {
-          background-size: 400% 400%;
-          animation: gradient-x 3s ease infinite;
-        }
-        
-        .animate-loading-bar {
-          animation: loading-bar 3s ease-in-out infinite;
-        }
-        
-        .animate-counter {
-          animation: counter 0.5s ease-out;
-        }
-        
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-        
-        .animate-fade-in-left {
-          animation: fade-in-left 0.8s ease-out forwards;
-        }
-        
-        .animate-fade-in-right {
-          animation: fade-in-right 0.8s ease-out forwards;
-        }
-        
-        .animate-slide-in-right {
-          animation: slide-in-right 0.5s ease-out;
-        }
-        
-        .animate-slide-down {
-          animation: slide-down 0.3s ease-out;
-        }
-        
-        .glow-cyan {
-          box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
-        }
-        
-        .glow-emerald {
-          box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .glow-purple {
-          box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
-        }
-        
-        .glow-yellow {
-          box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-        }
-        
-        .glow-rose {
-          box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
-        }
-        
-        .glow-indigo {
-          box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-        }
-        
-        .glow-subtle {
-          box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
-        }
-        
-        .glow-subtle:hover {
-          box-shadow: 0 0 60px rgba(34, 211, 238, 0.1);
-        }
-        
-        .animate-spin-slow {
-          animation: spin 8s linear infinite;
-        }
-        
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        /* Smooth scrolling */
-        html {
-          scroll-behavior: smooth;
-        }
-        
-        /* Hide scrollbar but keep functionality */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.8);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: rgba(34, 211, 238, 0.5);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(34, 211, 238, 0.7);
-        }
-      `}</style>
+
     </div>
   )
 }

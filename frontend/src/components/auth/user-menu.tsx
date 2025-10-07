@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { useAuthStore } from '@/store/auth-store'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -13,20 +14,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { 
-  User, 
-  Settings, 
-  LogOut, 
-  Shield, 
+import {
+  User,
+  Settings,
+  LogOut,
+  Shield,
   UserCheck,
   Stethoscope,
-  UserCircle
+  UserCircle,
+  Sun,
+  Moon
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function UserMenu() {
   const { user, logout, isAuthenticated } = useAuthStore()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   if (!isAuthenticated || !user) {
@@ -137,13 +141,35 @@ export function UserMenu() {
           <span>Profile</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => router.push('/dashboard/settings')}
           className="cursor-pointer"
         >
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuLabel>Theme</DropdownMenuLabel>
+
+        <DropdownMenuItem
+          onClick={() => setTheme('light')}
+          className="cursor-pointer"
+        >
+          <Sun className="mr-2 h-4 w-4" />
+          <span>Light</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => setTheme('dark')}
+          className="cursor-pointer"
+        >
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Dark</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
 
         {user.role === 'doctor' && (
           <DropdownMenuItem 
