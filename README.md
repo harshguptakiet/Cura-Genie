@@ -26,6 +26,8 @@ It brings together AI-driven medical imaging, genomic analysis, real-time health
 
 **With features like:**
 
+**🩺Automated PDF Clinical Reports** - Generate professional, ready-to-share PDF reports containing:Patient Info,AI Health Summaries,Charts & Visualizations 
+
 **📊 Health Dashboard** – Real-time metrics, interactive visualizations, and personalized insights
 
 **🧠 AI Health Analytics** – Predictive health analysis, risk assessment, and intelligent data processing
@@ -93,6 +95,16 @@ CuraGenie makes healthcare smarter, more accessible, and truly personalized — 
 - **Interactive Visualizations** - Dynamic charts and graphs
 - **Progress Tracking** - Historical health data analysis
 - **Predictive Analytics** - Future health trend forecasting
+
+### 🩺Automated PDF Clinical Reports
+✨ Generate PDF reports containing:  
+  - **Patient Info** – Name, DOB, Gender, Email  
+  - **AI Health Summaries** – Insights from AI analytics  
+  - **Charts & Visualizations** – Interactive bar charts of health metrics    
+  - Integrated **frontend download button** (Next.js) with FastAPI backend  
+  - **Modular & reusable** PDF generator (`utils/pdf_generator.py`)  
+  - Includes **mock/test data** for immediate testing  
+
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
 
