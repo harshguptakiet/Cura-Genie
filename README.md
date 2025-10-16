@@ -1,22 +1,38 @@
-# 🧠 CuraGenie - AI-Powered Healthcare Platform
+<div align="center">
+<h1>🧠 CuraGenie - AI-Powered Healthcare Platform</h1>
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python)](https://python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org/)
-
-<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
-
 [![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/harshguptakiet/Cura-Genie)
+</div>
+<div align="center">
+<br />
+    <a href="https://cura-genie.vercel.app/"><strong>Explore the Live Demo »</strong></a>
+    <br />
+    <br />
 
-<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
-
-**Transform your healthcare experience with intelligent medical insights**
-
+[Report Bug](https://github.com/harshguptakiet/Cura-Genie/issues) • [Request Feature](https://github.com/harshguptakiet/Cura-Genie/issues)
+ 
+</div>
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 <div align="center">
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=24&duration=3000&pause=1000&color=00C853&center=true&vCenter=true&width=900&lines=Thanks+for+visiting+Cura-Genie!+🙌;Start+the+repo+✅;Share+it+with+others+🌍;Contribute+and+grow+🛠️;Happy+Coding+✨!" alt="Thanks Banner Typing SVG" />
 </div>
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
+
+**Transform your healthcare experience with intelligent medical insights**
+
+## ✨ Vision
+Empower everyone to take control of their health with accessible, AI-driven insights and secure, personalized care.
+
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
+
+## 🎯 Mission
+- Make advanced medical analytics and genomics easy for all.
+- Connect patients, doctors, and caregivers in a secure, collaborative platform.
+- Drive innovation in healthcare through open-source AI and community contributions.
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
 
 ### CuraGenie - AI-Powered Healthcare Platform
@@ -40,6 +56,7 @@ It brings together AI-driven medical imaging, genomic analysis, real-time health
 
 CuraGenie makes healthcare smarter, more accessible, and truly personalized — empowering individuals and healthcare providers with the insights they need to take control of health and wellness.
 
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
 
 **📊 Project Insights**
 
@@ -108,6 +125,14 @@ CuraGenie makes healthcare smarter, more accessible, and truly personalized — 
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
 
+## 💡 Why CuraGenie?
+- Unified platform: Imaging, genomics, chat, and dashboards in one place.
+- Real-time, AI-powered health analytics and risk prediction.
+- Open-source, privacy-first, and built for collaboration.
+- Designed for both patients and healthcare professionals.
+
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="150%">
+
 ![GSSoC Logo](https://github.com/harshguptakiet/Cura-Genie/blob/master/frontend/public/gssoc%20logo.png)
 
 🌟 **Exciting News...**
@@ -126,6 +151,12 @@ CuraGenie makes healthcare smarter, more accessible, and truly personalized — 
 🎉 **I can’t wait to welcome new contributors** from GSSoC 2025 to this Cura-Genie project family! Let's build, learn, and grow together — one commit at a time. 🔥👨‍💻👩‍💻
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
+
+## 🧩 Prerequisites
+- Node.js 18+ and npm (for frontend)
+- Python 3.9+ and pip (for backend)
+- Git, modern browser, and code editor (VS Code recommended)
+- (Optional) Docker for easy deployment
 
 ## 🚀 Quick Start
 
@@ -174,6 +205,11 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
+🗺️ Project Flowchart
+
+<img width="703" height="596" alt="Screenshot 2025-10-13 212445" src="https://github.com/user-attachments/assets/622c2ee6-4458-43eb-99ae-e783d732a3fa" />
+
+
 **📁 Project Structure**
 
 ```bash
@@ -211,6 +247,34 @@ OPENAI_API_KEY=your-openai-key
 ```
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
+🛠️ Troubleshooting
+- Install errors:
+  - For Node:
+  ```
+     npm cache clean --force
+     rm -rf node_modules package-lock.json
+     npm install
+   ```
+  - For Python:
+    ```pip install -r requirements.txt```
+- Port conflicts:
+  - Change frontend/backend port in .env or use lsof -i :PORT to find and kill the process.
+- API not connecting:
+  - Check NEXT_PUBLIC_API_URL in .env.local and backend server status.
+- PDF/report issues:
+  - Ensure all dependencies are installed and try with sample/mock data.
+
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
+
+**Screenshots**
+<img width="1099" height="780" alt="image" src="https://github.com/user-attachments/assets/f3a5f882-6031-4e89-b504-24d37d7bb0fd" />
+<img width="1015" height="720" alt="image" src="https://github.com/user-attachments/assets/eba493cb-2a2c-4a08-87d9-31cc23814b39" />
+<img width="1099" height="791" alt="image" src="https://github.com/user-attachments/assets/4692ec8a-9757-4493-adbc-003bf8946d38" />
+<img width="819" height="639" alt="image" src="https://github.com/user-attachments/assets/0c27dd3d-81fc-4d42-98ff-899d36c960ce" />
+
+
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
 **🏥 Medical Disclaimer**
 
